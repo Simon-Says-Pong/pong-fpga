@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant S as vga_sync
+    participant B as ball_paddle
+    participant F as game_fsm
+    participant R as renderer
+    Note over S,R: visible area: renderer draws 640x480 pixels from current positions
+    S->>B: frame_tick (start of vblank)
+    S->>F: frame_tick
+    B->>B: move paddles (buttons, clamp to screen)
+    B->>B: move ball, bounce top/bottom, paddle hit
+    alt ball passed a paddle
+        B->>F: miss_left / miss_right
+        F->>F: Game-reset: score_l or score_r +1, ball count +1
+        F->>B: Game-init (ball to centre)
+    end
+    B-->>R: ball_x/y, paddle_l/r_y
+    F-->>R: state, score_l, score_r
+    Note over S,R: next visible area shows the new frame

@@ -1,0 +1,26 @@
+flowchart LR
+    CLK100([100 MHz board clock]) --> CLKGEN
+    BTN([BTN0..BTN3]) --> DEB
+    subgraph TOP[top]
+        CLKGEN[clk_gen<br/>MMCM / Clocking Wizard] -- "clk_pix (25 MHz)" --> SYNC
+        DEB[btn_debounce<br/>2-FF sync + debounce]
+        SYNC[vga_sync<br/>640x480 @ 60 Hz]
+        FSM[game_fsm<br/>state, score_l, score_r, ball count]
+        BP[ball_paddle<br/>positions, collisions]
+        REN[renderer]
+        ROM[(char_rom<br/>own digits + letters)]
+
+        DEB -- "button_presses 0-3" --> BP
+        DEB -- "any button" --> FSM
+        SYNC -- "frame_tick" --> BP
+        SYNC -- "frame_tick" --> FSM
+        SYNC -- "pixel_x, pixel_y, video_on" --> REN
+        FSM -- "state (init / run)" --> BP
+        BP -- "miss: none / left / right" --> FSM
+        BP -- "ball_x/y, paddle_l/r_y" --> REN
+        FSM -- "state, score_l, score_r" --> REN
+        REN -- "char code, row" --> ROM
+        ROM -- "pixel bits" --> REN
+    end
+    SYNC -- "hsync, vsync" --> VGA([Pmod VGA])
+    REN -- "RGB 4:4:4" --> VGA

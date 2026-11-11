@@ -1,0 +1,14 @@
+flowchart TD
+    A[frame_tick in Game-update] --> B[ball += velocity]
+    B --> C{hits top or bottom wall?}
+    C -- yes --> C1[invert vy]
+    C -- no --> D
+    C1 --> D{overlaps a paddle?}
+    D -- yes --> D1[invert vx<br/>45 deg rebound]
+    D -- no --> E{past left or right edge?}
+    D1 --> Z[done until next frame]
+    E -- left --> E1[miss_left: score_r +1]
+    E -- right --> E2[miss_right: score_l +1]
+    E -- no --> Z
+    E1 --> G[game_fsm: Game-reset]
+    E2 --> G

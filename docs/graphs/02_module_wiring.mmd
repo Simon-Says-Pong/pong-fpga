@@ -15,6 +15,10 @@ flowchart LR
         SYNC -- "frame_tick" --> BP
         SYNC -- "frame_tick" --> FSM
         SYNC -- "pixel_x, pixel_y, video_on" --> REN
+        CLKGEN -- "clk_pix" --> REN
+        CLKGEN -- "clk_pix" --> BP
+        CLKGEN -- "clk_pix" --> FSM
+        CLKGEN -- "clk_pix" --> DEB
         FSM -- "state (init / run)" --> BP
         BP -- "miss: none / left / right" --> FSM
         BP -- "ball_x/y, paddle_l/r_y" --> REN

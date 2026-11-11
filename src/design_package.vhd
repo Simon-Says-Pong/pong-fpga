@@ -38,8 +38,9 @@ use IEEE.numeric_std.all;
 package design_pkg is 
 
 type state_g is (start, game_init, game_update, game_rst, final);
-type position is array (1 downto 0) of std_logic_vector(9 downto 0);
+type position is array (1 downto 0) of unsigned(9 downto 0);
 type miss is (none, left, right);
 subtype score is unsigned(1 downto 0);
+subtype rgb_out is unsigned(3 downto 0);
 
 end package;

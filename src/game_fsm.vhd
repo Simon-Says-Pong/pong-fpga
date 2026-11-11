@@ -21,6 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.all;
 library work;
 use work.design_pkg.all;
 
@@ -34,12 +35,27 @@ use work.design_pkg.all;
 --use UNISIM.VComponents.all;
 
 entity game_fsm is
-    Port ( frame_tick : in STD_LOGIC);
+    port (  
+            clk_pix      : in std_logic;
+            frame_tick  : in std_logic;
+            miss        : in miss;
+            btn_press   : in std_logic;
+            
+            state       : out state_g;
+            score_l     : out score;
+            score_r     : out score
+            );
 end game_fsm;
 
 architecture Behavioral of game_fsm is
 
 begin
 
-
+process(clk)
+begin 
+    if rising_edge(clk) then
+        if frame_tick = '1' then 
+        
+        end if;
+    end if;
 end Behavioral;

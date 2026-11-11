@@ -17,7 +17,7 @@
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
-
+--rendert das bild 
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -33,7 +33,30 @@ use work.design_pkg.all;
 --use UNISIM.VComponents.all;
 
 entity renderer is
---  Port ( );
+    port(
+        clk_pix     : in std_logic;
+        rst         : in std_logic;
+        
+        --output controlls
+        video_enable    : in std_logic;
+        pixel_pos       : in position;
+        
+        --output select
+        state_game  : in state_g;
+        
+        --score sign 
+        score_l     : in score;
+        score_r     : in score;
+        
+        --Object position
+        ball_pos    : in position;
+        paddle_pos  : in position;
+       
+        --colour output 
+        red_o       : out rgb_out;
+        green_o     : out rgb_out;
+        blue_o      : out rgb_out
+    );
 end renderer;
 
 architecture Behavioral of renderer is

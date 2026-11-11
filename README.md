@@ -25,8 +25,10 @@ a suggested module split and open questions.
 |---|---|
 | `src/` | synthesizable VHDL |
 | `sim/` | testbenches |
-| `constraints/` | `.xdc` pin and clock constraints |
+| `constraints/` | `.xdc` pin and clock constraints (Digilent Arty A7-35 master file from the course, all pins commented out) |
 | `docs/` | requirements and design notes |
+| `vivado/` | Vivado project (`pong.xpr`); only the `.xpr` is tracked |
+| `create_project.tcl` | recreates `vivado/` from the repo: `vivado -mode batch -source create_project.tcl` |
 
 ## Rules
 

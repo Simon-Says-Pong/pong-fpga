@@ -1,0 +1,20 @@
+stateDiagram-v2
+    [*] --> Startscreen : power-up / reset
+    Startscreen --> GameInit : button
+    GameInit --> GameUpdate : button
+    GameUpdate --> GameUpdate : frame tick (move ball + paddles)
+    GameUpdate --> GameReset : miss_left / miss_right
+    GameReset --> GameInit : game not over
+    GameReset --> FinalScreen : 3 points or 6 balls
+    FinalScreen --> Startscreen : button / reset
+
+    Startscreen : Startscreen
+    Startscreen : welcome message
+    GameInit : Game - init
+    GameInit : ball in centre, paddles reset
+    GameUpdate : Game - update
+    GameUpdate : once per frame (60 Hz)
+    GameReset : Game - reset
+    GameReset : score_l or score_r +1, check end rule
+    FinalScreen : Final screen
+    FinalScreen : show winning colour

@@ -1,0 +1,28 @@
+# Vivado generated output: keep only sources, constraints and IP .xci files
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.gen/
+.Xil/
+*.jou
+*.log
+*.str
+*.wdb
+*.pb
+webtalk*
+vivado*.backup.*
+usage_statistics_webtalk.*
+
+# GHDL / GTKWave
+*.o
+*.cf
+*.ghw
+*.vcd
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

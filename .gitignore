@@ -26,6 +26,7 @@ usage_statistics_webtalk.*
 Thumbs.db
 .vscode/
 .idea/
+_ide
 
 # IP cores: keep only the .xci (the configuration); everything else is generated
 ip/*/*

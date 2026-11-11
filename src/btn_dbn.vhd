@@ -31,7 +31,7 @@ architecture rtl of btn_dbn is
     signal sync1, sync2 : std_logic := '0';
     signal cnt          : integer range 0 to DEBOUNCE_CYCLES - 1 := 0;
     signal level_i      : std_logic := '0';
-    signal level_prev   : std_logic := '0';
+    signal level_d   : std_logic := '0';
 
 begin
 
@@ -46,11 +46,11 @@ begin
             else
                 cnt <= cnt + 1;
             end if;
-            level_prev <= level_i;
+            level_d <= level_i;
         end if;
     end process;
 
     level <= level_i;
-    press <= level_i and not level_prev;
+    press <= level_i and not level_d;
 
 end architecture rtl;

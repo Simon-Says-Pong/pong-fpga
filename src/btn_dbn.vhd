@@ -16,11 +16,11 @@ use ieee.std_logic_1164.all;
 
 entity btn_dbn is
     generic (
-        DEBOUNCE_CYCLES : positive := 250_000  -- sample period in clk cycles
+        DEBOUNCE_CYCLES : positive := 250_000  -- 10ms debounce (worst case flip is 5ms, so 2x hardware) 
     );
     port (
         clk    : in  std_logic;
-        btn_in : in  std_logic;  -- raw button pin, active high
+        btn_in : in  std_logic;  
         level  : out std_logic;
         press  : out std_logic
     );
@@ -38,19 +38,14 @@ begin
     process (clk)
     begin
         if rising_edge(clk) then
-            -- 1. synchroniser (every clock)
             sync1 <= btn_in;
             sync2 <= sync1;
-
-            -- 2. sample the synchronised input once per debounce period
             if cnt = DEBOUNCE_CYCLES - 1 then
                 cnt     <= 0;
                 level_i <= sync2;
             else
                 cnt <= cnt + 1;
             end if;
-
-            -- 3. edge detection on the debounced level
             level_prev <= level_i;
         end if;
     end process;

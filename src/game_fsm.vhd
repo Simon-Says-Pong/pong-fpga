@@ -36,14 +36,19 @@ use work.design_pkg.all;
 
 entity game_fsm is
     port (  
-            clk_pix      : in std_logic;
-            frame_tick  : in std_logic;
-            miss        : in miss;
-            btn_press   : in std_logic;
+            --general inputs
+            clk_pix     : in std_logic;
+            rst         : in std_logic;
             
-            state       : out state_g;
-            score_l     : out score;
-            score_r     : out score
+            --60Hz bild ende Signal 
+            frame_tick  : in std_logic;
+            
+            -- Game specific 
+            miss        : in miss_t;
+            btn_press   : in std_logic;
+            state       : out state_t;
+            score_l     : out score_t;
+            score_r     : out score_t
             );
 end game_fsm;
 
@@ -51,11 +56,13 @@ architecture Behavioral of game_fsm is
 
 begin
 
-process(clk)
+process(clk_pix)
 begin 
-    if rising_edge(clk) then
+    if rising_edge(clk_pix) then
         if frame_tick = '1' then 
-        
+            
         end if;
     end if;
+end process;  
+  
 end Behavioral;

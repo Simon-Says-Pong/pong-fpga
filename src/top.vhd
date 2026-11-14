@@ -32,7 +32,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity top is
-    Port ( CLK100MHz : in STD_LOGIC;
+    Port ( CLK100MHZ : in STD_LOGIC;
            ck_rst : in STD_LOGIC;
            btn : in STD_LOGIC_VECTOR (3 downto 0));
 end top;

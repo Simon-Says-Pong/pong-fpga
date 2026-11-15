@@ -47,7 +47,7 @@ end object_check;
 architecture Behavioral of object_check is
     signal pixel_pos_d  : pos_t := (others => (others => '0'));
     
-    -- TRC -> Top Right Corner ---- BRC --> Bottom Left Corner
+    -- TLC -> Top Left Corner ---- BRC --> Bottom Left Corner
     signal ball_TLC     : pos_t := (others => (others => '0'));
     signal ball_BRC     : pos_t := (others => (others => '0')); 
     signal paddle_BY    : posY_t := (others => (others => '0')); --BY -> bottom y

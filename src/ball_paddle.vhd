@@ -46,7 +46,7 @@ begin
             if rst = '1' then
                 ball_pos_d <= (x => (others => '0'), y => (others => '0')); -- TODO centre
             elsif frame_tick = '1' then
-                null; -- TODO once per frame: move paddles and ball
+                null; 
             end if;
         end if;
     end process;

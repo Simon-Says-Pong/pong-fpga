@@ -1,23 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 14.11.2026 16:30:50
--- Design Name: 
--- Module Name: digit_check - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -38,6 +18,8 @@ entity digit_check is
         
         --Konstant Number Template Multiplier 10x10
         DMULTI_X : NATURAL := D_WIDTH / 10; --6x
+        -- FIXME: uses D_WIDTH instead of D_HIGHT -> 6 instead of 8. row_index then
+        --        reaches 13 for y up to DB_Y2, outside its range 0..9. Should be D_HIGHT / 10.
         DMULTI_Y : NATURAL := D_WIDTH / 10; --8x
         
         --general
@@ -122,14 +104,21 @@ begin
         if rising_edge(clk_pix) then
             pixel_pos_d <= pixel_pos;
             digit_hit_left <= '0';
+            -- FIXME: duplicate line, should be digit_hit_right <= '0'. digit_hit_right is
+            --        never reset, so after the first right-digit pixel it stays '1' forever
+            --        and checkDigitVisual reads data_DR for every later pixel.
             digit_hit_left <= '0';
-            
+
             --Overall horrible in efficency and needed storage
+            -- FIXME: '<= DB_Y2' is one row too many (ram_a uses '< DB_Y2'), should be '<'.
             if pixel_pos.y >= DB_Y1 and pixel_pos.y <= DB_Y2 then
+                -- FIXME: TempDigitPos is never used? Where do you read this?
                 TempDigitPos.y <= (pixel_pos.y - DB_Y1) / 10; --Horrible in efficiency and Timing
-                
+
                 --left digit
-                if pixel_pos.x >= DLB_X1 and pixel_pos.x <= DLB_X2 then 
+                -- FIXME: '<= DLB_X2' / '<= DRB_X2' lets read_pos reach 10 (x - X1 = 60, / 6),
+                --        but data_DL/data_DR only have bits 0..9. Overflow.
+                if pixel_pos.x >= DLB_X1 and pixel_pos.x <= DLB_X2 then
                     TempDigitPos.x <= (pixel_pos.x - DLB_X1) / 10; --Horrible in efficiency and Timing
                     digit_hit_left <= '1';
                     
@@ -150,7 +139,9 @@ begin
         if rising_edge(clk_pix) then 
             digit_hit <= '0';
             
-            if digit_hit_left = '1' then 
+            -- FIXME: read_pos is 4 bits, but this is a 10 bit result. 
+            -- FIXME: I believe this makes it so digits are mirrored?
+            if digit_hit_left = '1' then
                 read_pos := (pixel_pos_d.x - DLB_X1) / DMULTI_X;
                 digit_hit <= '1' when data_DL(to_integer(read_pos)) = '1' else '0';
                 

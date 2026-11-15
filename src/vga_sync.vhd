@@ -17,18 +17,13 @@
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
---bestimmt und controlled welcher pixel generirtz wird 
+--bestimmt und controlled welcher pixel generiert wird 
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 library WORK;
 use WORK.design_pkg.all;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity vga_sync is
     Port ( clk_pix          : in STD_LOGIC;

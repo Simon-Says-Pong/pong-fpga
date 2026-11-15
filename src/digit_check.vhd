@@ -5,11 +5,6 @@ library work;
 use work.design_pkg.all;
 use work.bitmap_pkg.all;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity digit_check is
     generic (
         -- General Digit Config DLB - > Digit Left Border 
@@ -105,12 +100,11 @@ begin
             pixel_pos_d <= pixel_pos;
             digit_hit_left <= '0';
             -- FIXME: duplicate line, should be digit_hit_right <= '0'. digit_hit_right is
-            --        never reset, so after the first right-digit pixel it stays '1' forever
-            --        and checkDigitVisual reads data_DR for every later pixel.
+            --        never reset.
             digit_hit_left <= '0';
 
             --Overall horrible in efficency and needed storage
-            -- FIXME: '<= DB_Y2' is one row too many (ram_a uses '< DB_Y2'), should be '<'.
+            -- FIXME: '<= DB_Y2' is one row too many (ram_a uses '< DB_Y2')
             if pixel_pos.y >= DB_Y1 and pixel_pos.y <= DB_Y2 then
                 -- FIXME: TempDigitPos is never used? Where do you read this?
                 TempDigitPos.y <= (pixel_pos.y - DB_Y1) / 10; --Horrible in efficiency and Timing

@@ -28,14 +28,16 @@ package design_pkg is
     constant BALL_WIDTH     : NATURAL := 12;
     constant BALL_HIGHT     : NATURAL := 12;
     
-    constant PADDLE_WIDTH   : NATURAL := 8;
+    constant PADDLE_WIDTH   : NATURAL := 10;
     constant PADDLE_HIGHT   : NATURAL := 60;
+    -- X1 = first pixel of the paddle, X2 = first pixel AFTER it (exclusive),
+    -- so a paddle covers X1 .. X2-1 = exactly PADDLE_WIDTH pixels -> compare with '<' X2
     constant PADDLE_L_X1    : NATURAL := 8;
     constant PADDLE_L_X2    : NATURAL := PADDLE_L_X1 + PADDLE_WIDTH;
-    constant PADDLE_R_X1    : NATURAL := 622;
+    constant PADDLE_R_X1    : NATURAL := 622;  -- 640 - 8 - 10: same 8 px gap to the edge as the left paddle
     constant PADDLE_R_X2    : NATURAL := PADDLE_R_X1 + PADDLE_WIDTH;
-    
-    
+
+
     -- VGA Timing constants 640x480 60Hz
     constant HPIX   : NATURAL := 640;  -- Horizontal Display
     constant HFP    : NATURAL := 16;   -- Horizontal Front porch
@@ -54,6 +56,16 @@ package design_pkg is
     constant END_HSYNC      : NATURAL := HPIX + HFP + HR;
     constant START_VSYNC    : NATURAL := VPIX + VFP;
     constant END_VSYNC      : NATURAL := VPIX + VFP + VR;
+
+    -- Game movement (per frame, i.e. 60 times per second)
+    -- keep BALL_SPEED <= PADDLE_WIDTH, otherwise the ball can jump over a paddle in one frame
+    constant BALL_SPEED     : NATURAL := 3;   -- px per frame in x AND y -> 45 degree path
+    constant PADDLE_SPEED   : NATURAL := 4;   -- px per frame while the button is held
+
+    -- Start positions for game_init (top-left corners, so the objects appear centred)
+    constant BALL_X0        : NATURAL := (HPIX - BALL_WIDTH) / 2;    -- 314
+    constant BALL_Y0        : NATURAL := (VPIX - BALL_HIGHT) / 2;    -- 234
+    constant PADDLE_Y0      : NATURAL := (VPIX - PADDLE_HIGHT) / 2;  -- 210
 
 end package;
 

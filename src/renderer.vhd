@@ -30,6 +30,12 @@ use work.design_pkg.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+
+------------------------------------------------------
+------------------------------------------------------
+-- anpassung notwendig -> war als top level gedacht der ausgaben verarbeitung 
+------------------------------------------------------
+------------------------------------------------------
 entity renderer is
     port(
         clk_pix     : in std_logic;

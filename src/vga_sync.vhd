@@ -50,19 +50,27 @@ begin
     pixUpdate : process(clk_pix)
     begin 
         if rising_edge(clk_pix) then 
-            --Horizontal
-            if pixel_x < HTOTAL-1 then 
-                pixel_x <= pixel_x + 1;
-            elsif pixel_x = HTOTAL-1 then  
-                pixel_x <= "0";
+            if rst = '1' then 
+                pixel_x <= (others => '0');
+                pixel_y <= (others => '0');
+            else 
+                --Horizontal
+                if pixel_x < HTOTAL-1 then 
+                    pixel_x <= pixel_x + 1;
+                elsif pixel_x = HTOTAL-1 then  
+                    pixel_x <= (others => '0');
+                end if;
+                
+                --Vertical
+                if pixel_x = HTOTAL-1 then 
+                    if pixel_y < VTOTAL-1 then 
+                        pixel_y <= pixel_y + 1;
+                    elsif pixel_y = VTOTAL-1 then  
+                        pixel_y <= (others => '0');
+                    end if;
+                end if;
             end if;
             
-            --Vertical
-            if pixel_y < VTOTAL-1 then 
-                pixel_y <= pixel_y + 1;
-            elsif pixel_y = VTOTAL-1 then  
-                pixel_y <= "0";
-            end if;
             pixel_pos.x <= pixel_x;
             pixel_pos.y <= pixel_y;
         end if;
@@ -71,14 +79,24 @@ begin
     
     -- ~60Hz frame Tick & Sync
     SyncV : process(clk_pix)
-    variable vsync_i : std_logic := '0';
     begin 
         if rising_edge(clk_pix) then 
-            video_enable <= '1' when (pixel_x < HPIX and pixel_y < VPIX) else '0';
-            hsync       <= '1' when (pixel_x = HTOTAL-1) else '0';
-            vsync_i     := '1' when (pixel_x = HTOTAL-1 and pixel_y = VTOTAL-1) else '0';
-            vsync       <= vsync_i;
-            frame_tick  <= vsync_i;
+            if rst = '1' then 
+                video_enable <= '0';
+            else
+                video_enable    <= '1' when (pixel_x < HPIX and pixel_y < VPIX)         else '0';
+                frame_tick      <= '1' when (pixel_x = HTOTAL-1 and pixel_y = VTOTAL-1) else '0';
+                hsync <= '1';
+                vsync <= '1';
+                
+                if pixel_x >= START_HSYNC-1 and pixel_x <= END_HSYNC-1 then 
+                    hsync <= '0';
+                end if;
+                
+                if pixel_y >= START_VSYNC-1 and pixel_y <= END_VSYNC then 
+                    vsync <= '0';
+                end if;
+            end if;
         end if;
     end process;
 

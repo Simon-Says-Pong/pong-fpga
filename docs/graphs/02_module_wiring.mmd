@@ -7,24 +7,36 @@ flowchart LR
         SYNC[vga_sync<br/>640x480 @ 60 Hz]
         FSM[game_fsm<br/>state, score_l, score_r, ball count]
         BP[ball_paddle<br/>positions, collisions]
-        REN[renderer]
-        ROM[(char_rom<br/>own digits + letters)]
+        PKG[(design_pkg<br/>digit_0 .. digit_9<br/>10x10 bitmaps)]
+
+        subgraph RENDER[render path]
+            DLY[signal_delay<br/>pixel_pos, video_enable,<br/>hsync, vsync +2 clk]
+            OBJ[object_check<br/>ball / paddle area<br/>+2 clk]
+            DIG[digit_check<br/>score digits<br/>+2 clk]
+            REN[renderer<br/>colour per state<br/>RGB + syncs +1 clk]
+        end
 
         DEB -- "button_presses 0-3" --> BP
         DEB -- "any button" --> FSM
         SYNC -- "frame_tick" --> BP
         SYNC -- "frame_tick" --> FSM
-        SYNC -- "pixel_x, pixel_y, video_on" --> REN
-        CLKGEN -- "clk_pix" --> REN
         CLKGEN -- "clk_pix" --> BP
         CLKGEN -- "clk_pix" --> FSM
         CLKGEN -- "clk_pix" --> DEB
+        CLKGEN -- "clk_pix" --> RENDER
         FSM -- "state (init / run)" --> BP
         BP -- "miss: none / left / right" --> FSM
-        BP -- "ball_x/y, paddle_l/r_y" --> REN
-        FSM -- "state, score_l, score_r" --> REN
-        REN -- "char code, row" --> ROM
-        ROM -- "pixel bits" --> REN
+
+        SYNC -- "pixel_pos" --> OBJ
+        SYNC -- "pixel_pos" --> DIG
+        SYNC -- "pixel_pos, video_enable, hsync, vsync" --> DLY
+        SYNC -- "frame_tick" --> OBJ
+        DLY -- "pixel_pos_d, video_enable_d, hsync_d, vsync_d" --> REN
+        BP -- "ball_pos, paddle_pos (yL, yR)" --> OBJ
+        FSM -- "score_l, score_r" --> DIG
+        PKG -- "digit rows" --> DIG
+        OBJ -- "ball_hit, paddle_hit" --> REN
+        DIG -- "digit_hit" --> REN
+        FSM -- "state_game, score_l, score_r" --> REN
     end
-    SYNC -- "hsync, vsync" --> VGA([Pmod VGA])
-    REN -- "RGB 4:4:4" --> VGA
+    REN -- "red, green, blue (4 bit each), hsync, vsync" --> VGA([Pmod VGA])

@@ -56,6 +56,12 @@ architecture Behavioral of game_fsm is
 
 begin
 
+-----------------------------------------------
+--Miss und Score muss nach clk_pix verarbeitet und ausgegeben werden (oder schneller) --> score ist aufgrund von ball paddle und der miss hit übermittlung ein takt verzögert im verfleich zu paddle und ball position. 
+-->>> Ball x y muss ein takt verzögert werden für synchronisierung
+-->>> pixel position in ausgabe vermutlich vernachlässigbar aufgrund dessen das der erste pixel immer schwarz ist 
+------------------------------------------------
+
 process(clk_pix)
 begin 
     if rising_edge(clk_pix) then

@@ -35,77 +35,98 @@ entity renderer is
         clk_pix     : in std_logic;
         rst         : in std_logic;
         
-        --output controlls
+        --video controlls, all delayed by signal_delay to match the hit signals (+2 clk)
         video_enable    : in std_logic;
         pixel_pos       : in pos_t;
+        hsync_in        : in std_logic;
+        vsync_in        : in std_logic;
         
-        --output select
+        --Gane state
         state_game  : in state_t;
-        
-        --score sign 
+        ball_hit    : in std_logic;
+        paddle_hit  : in std_logic;
+        digit_hit   : in std_logic;
         score_l     : in score_t;
         score_r     : in score_t;
         
-        --Object position
-        ball_pos    : in pos_t;
-        paddle_pos  : in pos_y_t;
-       
-        --colour output 
+        --colour and sync output, registered together so they leave in the same cycle
         red         : out rgb_t;
         green       : out rgb_t;
-        blue        : out rgb_t
+        blue        : out rgb_t;
+        hsync       : out std_logic;
+        vsync       : out std_logic
     );
 end renderer;
 
 architecture Behavioral of renderer is
-    signal ball_pos_d : pos_t       := (others => (others => '0'));
-    signal paddle_pos_d : pos_y_t   := (others => (others => '0'));
 begin
 
-    ball_pos_d      <= ball_pos;
-    paddle_pos_d    <= paddle_pos;
-    --prio building     paddle  ->    ball    --> digits
-
+    
 print : process(clk_pix)
 begin 
-    if rising_edge(clk_pix) then 
-    
-        if rst = '1' then 
-            ball_pos_d      <= (others => (others => '0'));
-            paddle_pos_d    <= (others => (others => '0'));
-        end if;
-        
+    if rising_edge(clk_pix) then
+        -- syncs pass through the same register stage as the colours
+        hsync   <= hsync_in;
+        vsync   <= vsync_in;
 
+        red     <= (others => '0');
+        green   <= (others => '0');
+        blue    <= (others => '0');
         
-        if pixel_pos.x = MID then
-            red     <= (others => '1');
-            green   <= (others => '1');
-            blue    <= (others => '1');
-        -- midle bar
-        
+        if rst = '1' OR video_enable = '0' then 
+            red     <= (others => '0');
+            green   <= (others => '0');
+            blue    <= (others => '0');
         else
-        
-            if pixel_pos.x < MID then 
-            --Check if there is a paddle or digit at the pixel
-            --red side
+            --Start Screen
+            if state_game = start then 
+                -- Y hight abhängig 
+                -- weiss
+                -- red - blue
+                -- weiss
             
-            elsif pixel_pos.x > MID then 
-            --Check if there is a paddle or digit at the pixel
-            --blue side
+            --Game Screen
+            elsif state_game = game_init OR state_game = game_update OR state_game = game_rst then 
+                if pixel_pos.x = MID then 
+                    red     <= (others => '1');
+                    green   <= (others => '1');
+                    blue    <= (others => '1');
+                    
+                elsif digit_hit = '1' OR paddle_hit = '1' then 
+                    if pixel_pos.x < MID then 
+                        red     <= (others => '1');
+                        green   <= (others => '0');
+                        blue    <= (others => '0');
+                    elsif pixel_pos.x > MID then
+                        red     <= (others => '0');
+                        green   <= (others => '0');
+                        blue    <= (others => '1');
+                    end if;
+                    
+                elsif ball_hit = '1' then 
+                    red     <= (others => '1');
+                    green   <= (others => '1');
+                    blue    <= (others => '1');
+                end if;
             
+            --Final Screen 
+            elsif state_game = final then 
+                if digit_hit = '1' then
+                    --if pixel_pos.y  --> höhenabhängiger colorchange
+                        if score_l >= 3 then 
+                            red     <= (others => '1');
+                            green   <= (others => '0');
+                            blue    <= (others => '0');
+                        elsif score_r >= 3 then
+                            red     <= (others => '1');
+                            green   <= (others => '0');
+                            blue    <= (others => '0');
+                        end if;
+                end if;
             end if;
-            
-            --ball check positioning 
-            
-            
         end if;
-    
     end if;
-    
-
-
-
-
 end process;
+
 
 end Behavioral;

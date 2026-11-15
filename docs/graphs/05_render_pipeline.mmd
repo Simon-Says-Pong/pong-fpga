@@ -1,0 +1,54 @@
+flowchart LR
+    %% Register stages of the render path, one column per clk_pix cycle.
+    %% Orange = register stage added to align the delays, grey = stage that was already there.
+
+    subgraph C0["clk 0 : vga_sync outputs"]
+        V_POS[pixel_pos]
+        V_EN[video_enable]
+        V_SYNC[hsync, vsync]
+    end
+
+    subgraph C1["clk +1"]
+        D1["signal_delay stage 1<br/>pixel_pos, video_enable,<br/>hsync, vsync"]
+        O1["object_check<br/>pixel_pos_d"]
+        G1["digit_check<br/>data_DL / data_DR,<br/>digit_hit_left / right,<br/>pixel_pos_d"]
+    end
+
+    subgraph C2["clk +2 : renderer inputs aligned"]
+        D2["signal_delay stage 2<br/>pixel_pos_d, video_enable_d,<br/>hsync_d, vsync_d"]
+        O2["object_check<br/>ball_hit, paddle_hit"]
+        G2["digit_check<br/>digit_hit"]
+    end
+
+    subgraph C3["clk +3 : VGA outputs aligned"]
+        R_RGB["renderer<br/>red, green, blue"]
+        R_SYNC["renderer<br/>hsync, vsync"]
+    end
+
+    V_POS --> D1
+    V_EN --> D1
+    V_SYNC --> D1
+    V_POS --> O1
+    V_POS --> G1
+
+    D1 --> D2
+    O1 --> O2
+    G1 --> G2
+
+    D2 -- "pixel_pos_d, video_enable_d" --> R_RGB
+    D2 -- "hsync_d, vsync_d" --> R_SYNC
+    O2 -- "ball_hit, paddle_hit" --> R_RGB
+    G2 -- "digit_hit" --> R_RGB
+
+    R_RGB --> VGA([Pmod VGA])
+    R_SYNC --> VGA
+
+    subgraph LEG[legend]
+        L_NEW[added for alignment]
+        L_OLD[already present]
+    end
+
+    classDef added fill:#FFE0B2,stroke:#E65100,stroke-width:2px,color:#000
+    classDef existing fill:#ECEFF1,stroke:#607D8B,color:#000
+    class D1,D2,O1,R_SYNC,L_NEW added
+    class V_POS,V_EN,V_SYNC,G1,G2,O2,R_RGB,L_OLD existing

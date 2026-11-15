@@ -136,14 +136,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../src/test.vhd">
+      <File Path="$PPRDIR/../src/object_check.vhd">
         <FileInfo SFType="VHDL2008">
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../src/digit_pixel.vhd">
+      <File Path="$PPRDIR/../src/digit_check.vhd">
         <FileInfo SFType="VHDL2008">
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>

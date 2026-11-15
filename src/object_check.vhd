@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 13.11.2026 23:20:57
+-- Create Date: 14.11.2026 16:30:50
 -- Design Name: 
--- Module Name: digit_pixel - Behavioral
+-- Module Name: object_check - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,13 +31,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity digit_pixel is
+entity object_check is
 --  Port ( );
-end digit_pixel;
+end object_check;
 
-architecture Behavioral of digit_pixel is
+architecture Behavioral of object_check is
 
 begin
 
+--checking wether at this position is a ball or a paddle 
 
 end Behavioral;

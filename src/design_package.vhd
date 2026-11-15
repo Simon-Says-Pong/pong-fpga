@@ -25,11 +25,11 @@ use IEEE.numeric_std.all;
 
 package design_pkg is
 -- suffix t for types!
-type state_t is (start, game_init, game_update, game_rst, final); -- gamestate enum
-type pos_y_t is array (1 downto 0) of unsigned(9 downto 0); -- y(10) and y(10)
-type miss_t is (none, left, right); -- miss type enum
-subtype score_t is unsigned(1 downto 0); -- score subtype
-subtype rgb_t is unsigned(3 downto 0); -- one colour channel of the Pmod VGA (4 bit)
+type state_t    is (start, game_init, game_update, game_rst, final); -- gamestate enum
+type pos_y_t    is array (1 downto 0) of unsigned(9 downto 0); -- y(10) and y(10)
+type miss_t     is (none, left, right); -- miss type enum
+subtype score_t is natural; -- score subtype
+subtype rgb_t   is unsigned(3 downto 0); -- one colour channel of the Pmod VGA (4 bit)
 
 -- screen coordinate of one object (ball): 10 bits cover 0..1023 (640 x 480)
 type pos_t is record
@@ -55,7 +55,7 @@ constant VR     : INTEGER := 2;    -- Vertical Retrace
 constant VTOTAL : INTEGER := VPIX + VFP + VBP + VR; 
 constant MID    : INTEGER := HPIX / 2;
 
-type digit_table is array (9 downto 0) of std_logic_vector(9 downto 0); 
+type digit_table is array (9 downto 0) of unsigned(9 downto 0); 
 -- when writing stepping from position to position 6x in x, 8x in y 
 constant digit_0 : digit_table := (
     0 => "0011111100",

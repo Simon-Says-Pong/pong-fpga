@@ -89,13 +89,19 @@ begin
                 video_enable    <= '1' when (pixel_x < HPIX and pixel_y < VPIX)         else '0';
                 frame_tick      <= '1' when (pixel_x = HTOTAL-1 and pixel_y = VTOTAL-1) else '0';
                 
+                -- Sync pulses: START <= counter < END (END exclusive).
+                -- hsync/vsync are registered from pixel_x/pixel_y in the same clock as
+                -- pixel_pos, so no -1 correction is needed. The old bounds
+                -- (START-1 .. END-1 / START-1 .. END) gave 97 clk hsync and 4-line vsync,
+                -- the standard is 96 clk (HR) and 2 lines (VR).
+
                 --Check for Horizontal x-Area Sync-Signal
-                if pixel_x >= START_HSYNC-1 and pixel_x <= END_HSYNC-1 then 
+                if pixel_x >= START_HSYNC and pixel_x < END_HSYNC then
                     hsync <= '0';
                 end if;
-                
+
                 --Check for Vertical y-Area Sync-Signal
-                if pixel_y >= START_VSYNC-1 and pixel_y <= END_VSYNC then 
+                if pixel_y >= START_VSYNC and pixel_y < END_VSYNC then
                     vsync <= '0';
                 end if;
             end if;

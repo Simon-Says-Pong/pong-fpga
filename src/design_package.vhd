@@ -439,6 +439,20 @@ package bitmap_pkg is
         9 => "0111001110"
     );
     
+    -- !
+    constant letter_EXCL : digit_table := (
+        0 => "0000110000",
+        1 => "0000110000",
+        2 => "0000110000",
+        3 => "0000110000",
+        4 => "0000110000",
+        5 => "0000110000",
+        6 => "0000110000",
+        7 => "0000000000",
+        8 => "0000110000",
+        9 => "0000110000"
+    );
+
     -- empty
     constant letter_NONE : digit_table := (others => (others => '0'));
     
@@ -449,7 +463,8 @@ package bitmap_pkg is
         letter_A, letter_B, letter_D, letter_E,
         letter_G, letter_I, letter_L, letter_N,
         letter_O, letter_P, letter_R, letter_S,
-        letter_T, letter_U, letter_W, letter_NONE
+        letter_T, letter_U, letter_W, letter_EXCL,   -- one entry per LETTER value, same order
+        letter_NONE
     );
     
     

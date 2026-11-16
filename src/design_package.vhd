@@ -5,68 +5,78 @@ use IEEE.numeric_std.all;
 
 package design_pkg is
     -- suffix t for types!
-    type state_t    is (start, game_init, game_update, game_rst, final); -- gamestate enum
-    type miss_t     is (none, left, right); -- miss type enum
-    subtype score_t is unsigned(5 downto 0); -- score subtype
-    subtype rgb_t   is unsigned(3 downto 0); -- one colour channel of the Pmod VGA (4 bit)
+        type state_t    is (start, game_init, game_update, game_rst, final); -- gamestate enum
+        type miss_t     is (none, left, right); -- miss type enum
+        subtype score_t is unsigned(5 downto 0); -- score subtype
+        subtype rgb_t   is unsigned(3 downto 0); -- one colour channel of the Pmod VGA (4 bit)
     
     -- screen coordinate of one object (ball): 10 bits cover 0..1023 (640 x 480)
-    type pos_t is record
-        x : unsigned(9 downto 0);
-        y : unsigned(9 downto 0);
-    end record;
-    
-    type posY_t is record
-        yL : unsigned(9 downto 0);
-        yR : unsigned(9 downto 0);
-    end record;
+        type pos_t is record
+            x : unsigned(9 downto 0);
+            y : unsigned(9 downto 0);
+        end record;
+        
+        type posY_t is record
+            yL : unsigned(9 downto 0);
+            yR : unsigned(9 downto 0);
+        end record;
     
     -- y coordinate of both paddles: index 0 = left, 1 = right (x is fixed)
-    type paddles_t is array (0 to 1) of unsigned(9 downto 0);
+        type paddles_t is array (0 to 1) of unsigned(9 downto 0);
     
     --Paddle AND Ball definition
-    constant BALL_WIDTH     : NATURAL := 12;
-    constant BALL_HIGHT     : NATURAL := 12;
-    
-    constant PADDLE_WIDTH   : NATURAL := 10;
-    constant PADDLE_HIGHT   : NATURAL := 60;
+        constant BALL_WIDTH     : NATURAL := 12;
+        constant BALL_HIGHT     : NATURAL := 12;
+        
+        constant PADDLE_WIDTH   : NATURAL := 10;
+        constant PADDLE_HIGHT   : NATURAL := 60;
     -- X1 = first pixel of the paddle, X2 = first pixel AFTER it (exclusive),
     -- so a paddle covers X1 .. X2-1 = exactly PADDLE_WIDTH pixels -> compare with '<' X2
-    constant PADDLE_L_X1    : NATURAL := 8;
-    constant PADDLE_L_X2    : NATURAL := PADDLE_L_X1 + PADDLE_WIDTH;
-    constant PADDLE_R_X1    : NATURAL := 622;  -- 640 - 8 - 10: same 8 px gap to the edge as the left paddle
-    constant PADDLE_R_X2    : NATURAL := PADDLE_R_X1 + PADDLE_WIDTH;
+        constant PADDLE_L_X1    : NATURAL := 8;
+        constant PADDLE_L_X2    : NATURAL := PADDLE_L_X1 + PADDLE_WIDTH;
+        constant PADDLE_R_X1    : NATURAL := 622;  -- 640 - 8 - 10: same 8 px gap to the edge as the left paddle
+        constant PADDLE_R_X2    : NATURAL := PADDLE_R_X1 + PADDLE_WIDTH;
 
 
     -- VGA Timing constants 640x480 60Hz
-    constant HPIX   : NATURAL := 640;  -- Horizontal Display
-    constant HFP    : NATURAL := 16;   -- Horizontal Front porch
-    constant HR     : NATURAL := 96;   -- Horizontal Retrace
-    constant HBP    : NATURAL := 48;   -- Horizontal Back porch
-    constant HTOTAL : NATURAL := HPIX + HFP + HBP + HR;
-    
-    constant VPIX   : NATURAL := 480;  -- Vertical Display
-    constant VFP    : NATURAL := 10;   -- Vertical Front porch
-    constant VR     : NATURAL := 2;    -- Vertical Retrace
-    constant VBP    : NATURAL := 33;   -- Vertical Back porch
-    constant VTOTAL : NATURAL := VPIX + VFP + VBP + VR; 
-    
-    constant MID            : NATURAL := HPIX / 2;
-    constant START_HSYNC    : NATURAL := HPIX + HFP;
-    constant END_HSYNC      : NATURAL := HPIX + HFP + HR;
-    constant START_VSYNC    : NATURAL := VPIX + VFP;
-    constant END_VSYNC      : NATURAL := VPIX + VFP + VR;
+        constant HPIX   : NATURAL := 640;  -- Horizontal Display
+        constant HFP    : NATURAL := 16;   -- Horizontal Front porch
+        constant HR     : NATURAL := 96;   -- Horizontal Retrace
+        constant HBP    : NATURAL := 48;   -- Horizontal Back porch
+        constant HTOTAL : NATURAL := HPIX + HFP + HBP + HR;
+        
+        constant VPIX   : NATURAL := 480;  -- Vertical Display
+        constant VFP    : NATURAL := 10;   -- Vertical Front porch
+        constant VR     : NATURAL := 2;    -- Vertical Retrace
+        constant VBP    : NATURAL := 33;   -- Vertical Back porch
+        constant VTOTAL : NATURAL := VPIX + VFP + VBP + VR; 
+        
+        constant MID            : NATURAL := HPIX / 2;
+        constant START_HSYNC    : NATURAL := HPIX + HFP;
+        constant END_HSYNC      : NATURAL := HPIX + HFP + HR;
+        constant START_VSYNC    : NATURAL := VPIX + VFP;
+        constant END_VSYNC      : NATURAL := VPIX + VFP + VR;
 
     -- Game movement (per frame, i.e. 60 times per second)
     -- keep BALL_SPEED <= PADDLE_WIDTH, otherwise the ball can jump over a paddle in one frame
-    constant BALL_SPEED     : NATURAL := 3;   -- px per frame in x AND y -> 45 degree path
-    constant PADDLE_SPEED   : NATURAL := 4;   -- px per frame while the button is held
+        constant BALL_SPEED     : NATURAL := 3;   -- px per frame in x AND y -> 45 degree path
+        constant PADDLE_SPEED   : NATURAL := 4;   -- px per frame while the button is held
 
     -- Start positions for game_init (top-left corners, so the objects appear centred)
-    constant BALL_X0        : NATURAL := (HPIX - BALL_WIDTH) / 2;    -- 314
-    constant BALL_Y0        : NATURAL := (VPIX - BALL_HIGHT) / 2;    -- 234
-    constant PADDLE_Y0      : NATURAL := (VPIX - PADDLE_HIGHT) / 2;  -- 210
+        constant BALL_X0        : NATURAL := (HPIX - BALL_WIDTH) / 2;    -- 314
+        constant BALL_Y0        : NATURAL := (VPIX - BALL_HIGHT) / 2;    -- 234
+        constant PADDLE_Y0      : NATURAL := (VPIX - PADDLE_HIGHT) / 2;  -- 210
 
+
+    -- Screens Configuration of Text positions
+        --Start Screen Format
+        constant TITEL_Y     : natural := 150;
+        constant SUBTITEL_Y  : natural := 255;
+        
+        --Font Format
+        constant DIGIT_BIG_PX    : natural := 80;
+        constant DIGIT_SMALL_PX  : natural := 40;
+        constant DIGIT_SPACE_PX  : natural := 5;
 end package;
 
 
@@ -217,7 +227,8 @@ package bitmap_pkg is
         digit_0, digit_1, digit_2, digit_3, digit_4,
         digit_5, digit_6, digit_7, digit_8, digit_9
     );
-
+    
+    --Letters
     -- A
     constant letter_A : digit_table := (
         0 => "0011111100",
@@ -428,22 +439,20 @@ package bitmap_pkg is
         9 => "0111001110"
     );
     
-    -- Exclamation mark (!)
-    constant letter_EXCL : digit_table := (
-        0 => "0000110000",
-        1 => "0000110000",
-        2 => "0000110000",
-        3 => "0000110000",
-        4 => "0000110000",
-        5 => "0000110000",
-        6 => "0000110000",
-        7 => "0000000000",
-        8 => "0000110000",
-        9 => "0000110000"
+    -- empty
+    constant letter_NONE : digit_table := (others => (others => '0'));
+    
+    type LETTER is (A, B, D, E, G, I, L, N, O, P, R, S, T, U, W, EXCEL, NONE);
+    --Letter Storage ABC Sort Order 
+    type letter_rom_t is array (LETTER) of digit_table;
+    constant LETTERS : letter_rom_t := (
+        letter_A, letter_B, letter_D, letter_E,
+        letter_G, letter_I, letter_L, letter_N,
+        letter_O, letter_P, letter_R, letter_S,
+        letter_T, letter_U, letter_W, letter_NONE
     );
-
--- Space
-constant letter_SPACE : digit_table :=
-    (others => (others => '0'));
+    
+    
+    
 
 end package;

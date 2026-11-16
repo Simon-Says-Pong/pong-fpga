@@ -86,10 +86,29 @@ begin
         else
             --Start Screen
             if state_game = start then 
-                -- Y hight abhängig 
-                -- weiss
-                -- red - blue
-                -- weiss
+                if digit_hit = '1' then 
+                    if pixel_pos.y >= TITEL_Y and pixel_pos.y < TITEL_Y + DIGIT_BIG_PX then
+                        if pixel_pos.x < MID then 
+                            red     <= (others => '1');
+                            green   <= (others => '0');
+                            blue    <= (others => '0');
+                        elsif pixel_pos.x > MID then
+                            red     <= (others => '0');
+                            green   <= (others => '0');
+                            blue    <= (others => '1');
+                        end if;
+                    elsif pixel_pos.y >= SUBTITEL_Y and pixel_pos.y < SUBTITEL_Y + DIGIT_SMALL_PX then 
+                            red     <= (others => '1');
+                            green   <= (others => '1');
+                            blue    <= (others => '1');
+                    end if;
+                else 
+                    red     <= (others => '0');
+                    green   <= (others => '0');
+                    blue    <= (others => '0');
+                end if;
+            
+            
             
             --Game Screen
             elsif state_game = game_init OR state_game = game_update OR state_game = game_rst then 

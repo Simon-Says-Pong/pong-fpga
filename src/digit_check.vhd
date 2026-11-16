@@ -55,31 +55,39 @@ entity digit_check is
         -- Scale factor = 2**SHIFT. Digit size = 10 bitmap cells * 2**SHIFT pixels.
         -- SHIFT = 3 -> jede bitmap bit is 8 x 8 pixels -> digit ist damit dann 80 x 80 pixels.
         -- SHIFT = 2 würde 40 x 40 digits bedeuten.
-        SHIFT  : natural := 3;
+        SHIFT_BIG   : natural := 3;
+        SHIFT_SMALL : natural := 2;
 
-        -- Top-left corner wie besprochen
-        DB_Y1  : natural := 10;   
-        DLB_X1 : natural := 220;  
-        DRB_X1 : natural := 340  
+        
+        -- Top-left corner
+        DB_Y1       : natural := 10;   
+        DLB_X1      : natural := 220;  
+        DRB_X1      : natural := 340; 
+        
+        PONG_X1         : natural  := 152;
+        FINAL_X1        : natural  := 15;
+        PRESSBUTT_X1    : natural  := 74
     );
     Port (
         clk_pix     : in std_logic;  
         score_l     : in score_t;    
         score_r     : in score_t;     
-        pixel_pos   : in pos_t;       
+        pixel_pos   : in pos_t;  
+        state       : in state_t;     
 
         digit_hit   : out std_logic );
 end digit_check;
 
 architecture Behavioral of digit_check is
     -- Seiten lönge einer einzigen Box: 10 cells * 8 px = 80px (2^3*10)
-    constant D_SIZE : natural := 10 * 2**SHIFT;
+    constant D_SIZE : natural := 10 * 2**SHIFT_BIG;
 
   
-    signal box_hit : std_logic := '0';               
-    signal sel     : natural range 0 to 9 := 0;   
-    signal row     : natural range 0 to 9 := 0;      -- bitmap row, 0 = top
-    signal col     : natural range 0 to 9 := 0;      -- bitmap column, 0 = left
+    signal box_hit      : std_logic := '0';               
+    signal sel_digit    : natural range 0 to 9 := 0;   
+    signal sel_letter   : letter := NONE;  
+    signal row          : natural range 0 to 9 := 0;      -- bitmap row, 0 = top
+    signal col          : natural range 0 to 9 := 0;      -- bitmap column, 0 = left
 begin
 
     ------------------------------------------------------------------------------
@@ -90,35 +98,198 @@ begin
         variable dx, dy : unsigned(9 downto 0);
     begin
         if rising_edge(clk_pix) then
-            -- Default wie vorher auch
-            box_hit <= '0';
+            --Default
+            box_hit     <= '0';
+            sel_letter  <= NONE;
+            row     <= 0;
+            col     <= 0; 
+            dx      := (others => '0');
+            dy      := (others => '0');
 
-            -- Sind wir auf der richtigen höhe (diesmal ohne <= weil overflow sonst)
-            if pixel_pos.y >= DB_Y1 and pixel_pos.y < DB_Y1 + D_SIZE then
-                -- Offset von der oberseite der box mit 0..79
-                dy  := pixel_pos.y - DB_Y1;
-                -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
-                row <= to_integer(shift_right(dy, SHIFT));
-
-                -- Linke box?
-                if pixel_pos.x >= DLB_X1 and pixel_pos.x < DLB_X1 + D_SIZE then
-                    -- Offset von der linken seite der box: 0..79 -> column 0..9
-                    dx  := pixel_pos.x - DLB_X1;
-                    col <= to_integer(shift_right(dx, SHIFT));
-                    -- DIGITS kann nur 0..9. 
-                    if score_l <= 9 then
-                        sel     <= to_integer(score_l);   -- Linker score
-                        box_hit <= '1';
+            
+            --print Start Screen
+            if state = start then 
+            
+                ----------------------------------
+                --Titel : PONG                  --
+                ----------------------------------
+                if pixel_pos.y >= TITEL_Y AND pixel_pos.y < TITEL_Y + DIGIT_BIG_PX then 
+                    dy  := pixel_pos.y - TITEL_Y;
+                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    row <= to_integer(shift_right(dy, SHIFT_BIG));
+                    
+                    sel_letter <= P when (pixel_pos.x >= PONG_X1 and pixel_pos.x < PONG_X1 + DIGIT_BIG_PX);
+                    sel_letter <= O when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                    sel_letter <= N when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                    sel_letter <= G when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                    
+                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
+                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                    
+                    col <= to_integer(shift_right(dx, SHIFT_BIG));
+                    box_hit <= '1';
+                    
+                ----------------------------------
+                --Subtitel : PRESS START        --
+                ----------------------------------
+                elsif pixel_pos.y >= SUBTITEL_Y AND pixel_pos.y < SUBTITEL_Y + DIGIT_SMALL_PX then
+                    dy  := pixel_pos.y - SUBTITEL_Y;
+                    -- Teilen durch 4 mit shift: 0..39 -> bitmap row 0..9
+                    row <= to_integer(shift_right(dy, SHIFT_SMALL));
+                    
+                    sel_letter <= P     when (pixel_pos.x >= PRESSBUTT_X1 and pixel_pos.x < PRESSBUTT_X1 + DIGIT_SMALL_PX);
+                    sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
+                    sel_letter <= E     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
+                    sel_letter <= NONE  when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
+                    sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
+                    sel_letter <= A     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
+                    sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
+                    sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
+                    
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
+                    
+                    col <= to_integer(shift_right(dx, SHIFT_SMALL));
+                    box_hit <= '1';
+                end if;
+                
+                
+                
+            --print game
+            elsif state = game_init OR state = game_update OR state = game_rst then 
+    
+                -- Sind wir auf der richtigen höhe (diesmal ohne <= weil overflow sonst)
+                if pixel_pos.y >= DB_Y1 and pixel_pos.y < DB_Y1 + D_SIZE then
+                    -- Offset von der oberseite der box mit 0..79
+                    dy  := pixel_pos.y - DB_Y1;
+                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    row <= to_integer(shift_right(dy, SHIFT_BIG));
+    
+                    -- Linke box?
+                    if pixel_pos.x >= DLB_X1 and pixel_pos.x < DLB_X1 + D_SIZE then
+                        -- Offset von der linken seite der box: 0..79 -> column 0..9
+                        dx  := pixel_pos.x - DLB_X1;
+                        col <= to_integer(shift_right(dx, SHIFT_BIG));
+                        -- DIGITS kann nur 0..9. 
+                        if score_l <= 9 then
+                            sel_digit     <= to_integer(score_l);   -- Linker score
+                            box_hit <= '1';
+                        end if;
+    
+                    -- Rechte box?
+                    elsif pixel_pos.x >= DRB_X1 and pixel_pos.x < DRB_X1 + D_SIZE then
+                        dx  := pixel_pos.x - DRB_X1;
+                        col <= to_integer(shift_right(dx, SHIFT_BIG));
+                        if score_r <= 9 then
+                            sel_digit     <= to_integer(score_r);   -- rechter score
+                            box_hit <= '1';
+                        end if;
                     end if;
-
-                -- Rechte box?
-                elsif pixel_pos.x >= DRB_X1 and pixel_pos.x < DRB_X1 + D_SIZE then
-                    dx  := pixel_pos.x - DRB_X1;
-                    col <= to_integer(shift_right(dx, SHIFT));
-                    if score_r <= 9 then
-                        sel     <= to_integer(score_r);   -- rechter score
-                        box_hit <= '1';
+                end if;
+                
+                
+                
+            --print Final screen
+            elsif state = final then 
+                ----------------------------------
+                --TITEL : BLUE WON              --
+                ----------------------------------
+                if pixel_pos.y >= TITEL_Y AND pixel_pos.y < TITEL_Y + DIGIT_BIG_PX then 
+                    dy  := pixel_pos.y - TITEL_Y;
+                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    row <= to_integer(shift_right(dy, SHIFT_BIG));
+                    
+                    if score_r >= 3 then 
+                        sel_letter <= B when (pixel_pos.x >= FINAL_X1 and pixel_pos.x < FINAL_X1 + DIGIT_BIG_PX);
+                        sel_letter <= L when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                        sel_letter <= U when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                        sel_letter <= E when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                        sel_letter <= W when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        sel_letter <= O when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        sel_letter <= N when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        
+                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                   
+                   
+                    ----------------------------------
+                    --TITEL : RED WON               --
+                    ----------------------------------
+                    elsif score_l >= 3 then
+                        sel_letter <= R     when (pixel_pos.x >= FINAL_X1 and pixel_pos.x < FINAL_X1 + DIGIT_BIG_PX);
+                        sel_letter <= E     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                        sel_letter <= D     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                        sel_letter <= NONE  when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                        sel_letter <= W     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX);
+                        sel_letter <= O     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX);
+                        sel_letter <= N     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX);
+                        
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX);
+                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX);
+                   
                     end if;
+                    
+                    col <= to_integer(shift_right(dx, SHIFT_BIG)); 
+                    box_hit <= '1';
+                
+                ----------------------------------
+                --Subtitel : PRESS START        --
+                ----------------------------------
+                elsif pixel_pos.y >= SUBTITEL_Y AND pixel_pos.y < SUBTITEL_Y + DIGIT_SMALL_PX then
+                    dy  := pixel_pos.y - SUBTITEL_Y;
+                    -- Teilen durch 4 mit shift: 0..39 -> bitmap row 0..9
+                    row <= to_integer(shift_right(dy, SHIFT_SMALL));
+                    
+                    sel_letter <= P     when (pixel_pos.x >= PRESSBUTT_X1 and pixel_pos.x < PRESSBUTT_X1 + DIGIT_SMALL_PX);
+                    sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
+                    sel_letter <= E     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
+                    sel_letter <= NONE  when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
+                    sel_letter <= S     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
+                    sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
+                    sel_letter <= A     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
+                    sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
+                    sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
+                    
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
+                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
+                    
+                    col <= to_integer(shift_right(dx, SHIFT_SMALL));
+                    box_hit <= '1';
                 end if;
             end if;
         end if;
@@ -130,11 +301,20 @@ begin
     lookup : process(clk_pix)
     begin
         if rising_edge(clk_pix) then
-            -- DIGITS(sel)      -> picture vom Digit
+            -- DIGITS(sel_digit)      -> picture vom Digit
             --       (row)      -> eine row
             --       (9 - col)  -> ein pixel pixel, MSB format (cringe)
             -- AND box_hit      -> immer 0 wenn nicht in box
-            digit_hit <= box_hit and DIGITS(sel)(row)(9 - col);
+
+            --dynamix Game
+            if state = game_init OR state = game_update OR state = game_rst then 
+                digit_hit <= box_hit and DIGITS(sel_digit)(row)(9 - col);
+                
+            --static Screens
+            elsif state = final OR state = start then 
+                digit_hit <= box_hit and LETTERS(sel_letter)(row)(9 - col);
+            end if;
+
         end if;
     end process;
 

@@ -1,13 +1,6 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
 -- Create Date: 15.11.2026 03:27:00
--- Design Name:
 -- Module Name: signal_delay - Behavioral
--- Project Name:
--- Target Devices:
--- Tool Versions:
 -- Description: Delays the video timing signals of vga_sync (pixel_pos, video_enable,
 --              hsync, vsync) by STAGES clk_pix cycles, so they line up with the hit
 --              signals of object_check and digit_check (both +2 clk) at the renderer.
@@ -17,14 +10,12 @@
 -- Revision:
 -- Revision 0.01 - File Created
 -- Revision 0.02 - Generic stage count, also delays video_enable, hsync, vsync
--- Additional Comments:
---
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.design_pkg.all;
 

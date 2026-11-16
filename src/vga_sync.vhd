@@ -1,35 +1,24 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
 -- Create Date: 11.11.2026 16:11:57
--- Design Name: 
 -- Module Name: vga_sync - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
+-- Description: Erzeugt Pixelzaehler, hsync/vsync, video_enable und frame_tick fuer 640x480 @ 60 Hz.
+--
 -- Revision:
 -- Revision 0.01 - File Created
--- Additional Comments:
--- 
 ----------------------------------------------------------------------------------
 --bestimmt und controlled welcher pixel generiert wird 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.numeric_std.all;
-library WORK;
-use WORK.design_pkg.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+library work;
+use work.design_pkg.all;
 
 entity vga_sync is
-    Port ( clk_pix          : in STD_LOGIC;
+    Port ( clk_pix          : in std_logic;
            rst              : in std_logic;
     
-           frame_tick       : out STD_LOGIC;
+           frame_tick       : out std_logic;
            pixel_pos        : out pos_t;
            video_enable     : out std_logic;
            vsync            : out std_logic;  --verticale synchronisierung

@@ -1,9 +1,5 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
---
 -- Create Date: 11.11.2026 16:14:23
--- Design Name:
 -- Module Name: top - Behavioral
 -- Project Name: Pong on FPGA (Arty A7-35T + Pmod VGA)
 -- Target Devices: xc7a35ticsg324-1L
@@ -29,28 +25,26 @@
 -- Revision:
 -- Revision 0.01 - File Created
 -- Revision 0.02 - All modules wired, VGA outputs
--- Additional Comments:
---
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.design_pkg.all;
 
 entity top is
-    Port ( CLK100MHZ : in  STD_LOGIC;
-           ck_rst    : in  STD_LOGIC;                       -- red RESET button, active low
-           btn       : in  STD_LOGIC_VECTOR (3 downto 0);   -- BTN0..BTN3
+    Port ( CLK100MHZ : in  std_logic;
+           ck_rst    : in  std_logic;                       -- red RESET button, active low
+           btn       : in  std_logic_vector (3 downto 0);   -- BTN0..BTN3
 
            -- Pmod VGA
-           vga_r     : out STD_LOGIC_VECTOR (3 downto 0);
-           vga_g     : out STD_LOGIC_VECTOR (3 downto 0);
-           vga_b     : out STD_LOGIC_VECTOR (3 downto 0);
-           vga_hs    : out STD_LOGIC;
-           vga_vs    : out STD_LOGIC);
+           vga_r     : out std_logic_vector (3 downto 0);
+           vga_g     : out std_logic_vector (3 downto 0);
+           vga_b     : out std_logic_vector (3 downto 0);
+           vga_hs    : out std_logic;
+           vga_vs    : out std_logic);
 end top;
 
 architecture Behavioral of top is
@@ -147,7 +141,6 @@ begin
         port map (
             clk_pix    => clk_pix,
             rst        => rst,
-            frame_tick => frame_tick,
             miss       => miss,
             btn_press  => any_press,
             state      => state,
@@ -176,7 +169,6 @@ begin
     u_object_check : entity work.object_check
         port map (
             clk_pix    => clk_pix,
-            frame_tick => frame_tick,
             pixel_pos  => pixel_pos,
             ball_pos   => ball_pos,
             paddle_pos => paddle_y,

@@ -1,7 +1,10 @@
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.numeric_std.all;
+----------------------------------------------------------------------------------
+-- Module Name: design_pkg, bitmap_pkg
+-- Description: Shared types, screen/game constants (design_pkg) and the digit/letter bitmaps (bitmap_pkg).
+----------------------------------------------------------------------------------
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 package design_pkg is
     -- suffix t for types!
@@ -21,51 +24,49 @@ package design_pkg is
             yR : unsigned(9 downto 0);
         end record;
     
-    -- y coordinate of both paddles: index 0 = left, 1 = right (x is fixed)
-        type paddles_t is array (0 to 1) of unsigned(9 downto 0);
     
     --Paddle AND Ball definition
-        constant BALL_WIDTH     : NATURAL := 12;
-        constant BALL_HIGHT     : NATURAL := 12;
+        constant BALL_WIDTH     : natural := 12;
+        constant BALL_HIGHT     : natural := 12;
         
-        constant PADDLE_WIDTH   : NATURAL := 10;
-        constant PADDLE_HIGHT   : NATURAL := 60;
+        constant PADDLE_WIDTH   : natural := 10;
+        constant PADDLE_HIGHT   : natural := 60;
     -- X1 = first pixel of the paddle, X2 = first pixel AFTER it (exclusive),
     -- so a paddle covers X1 .. X2-1 = exactly PADDLE_WIDTH pixels -> compare with '<' X2
-        constant PADDLE_L_X1    : NATURAL := 8;
-        constant PADDLE_L_X2    : NATURAL := PADDLE_L_X1 + PADDLE_WIDTH;
-        constant PADDLE_R_X1    : NATURAL := 622;  -- 640 - 8 - 10: same 8 px gap to the edge as the left paddle
-        constant PADDLE_R_X2    : NATURAL := PADDLE_R_X1 + PADDLE_WIDTH;
+        constant PADDLE_L_X1    : natural := 8;
+        constant PADDLE_L_X2    : natural := PADDLE_L_X1 + PADDLE_WIDTH;
+        constant PADDLE_R_X1    : natural := 622;  -- 640 - 8 - 10: same 8 px gap to the edge as the left paddle
+        constant PADDLE_R_X2    : natural := PADDLE_R_X1 + PADDLE_WIDTH;
 
 
     -- VGA Timing constants 640x480 60Hz
-        constant HPIX   : NATURAL := 640;  -- Horizontal Display
-        constant HFP    : NATURAL := 16;   -- Horizontal Front porch
-        constant HR     : NATURAL := 96;   -- Horizontal Retrace
-        constant HBP    : NATURAL := 48;   -- Horizontal Back porch
-        constant HTOTAL : NATURAL := HPIX + HFP + HBP + HR;
+        constant HPIX   : natural := 640;  -- Horizontal Display
+        constant HFP    : natural := 16;   -- Horizontal Front porch
+        constant HR     : natural := 96;   -- Horizontal Retrace
+        constant HBP    : natural := 48;   -- Horizontal Back porch
+        constant HTOTAL : natural := HPIX + HFP + HBP + HR;
         
-        constant VPIX   : NATURAL := 480;  -- Vertical Display
-        constant VFP    : NATURAL := 10;   -- Vertical Front porch
-        constant VR     : NATURAL := 2;    -- Vertical Retrace
-        constant VBP    : NATURAL := 33;   -- Vertical Back porch
-        constant VTOTAL : NATURAL := VPIX + VFP + VBP + VR; 
+        constant VPIX   : natural := 480;  -- Vertical Display
+        constant VFP    : natural := 10;   -- Vertical Front porch
+        constant VR     : natural := 2;    -- Vertical Retrace
+        constant VBP    : natural := 33;   -- Vertical Back porch
+        constant VTOTAL : natural := VPIX + VFP + VBP + VR; 
         
-        constant MID            : NATURAL := HPIX / 2;
-        constant START_HSYNC    : NATURAL := HPIX + HFP;
-        constant END_HSYNC      : NATURAL := HPIX + HFP + HR;
-        constant START_VSYNC    : NATURAL := VPIX + VFP;
-        constant END_VSYNC      : NATURAL := VPIX + VFP + VR;
+        constant MID            : natural := HPIX / 2;
+        constant START_HSYNC    : natural := HPIX + HFP;
+        constant END_HSYNC      : natural := HPIX + HFP + HR;
+        constant START_VSYNC    : natural := VPIX + VFP;
+        constant END_VSYNC      : natural := VPIX + VFP + VR;
 
     -- Game movement (per frame, i.e. 60 times per second)
     -- keep BALL_SPEED <= PADDLE_WIDTH, otherwise the ball can jump over a paddle in one frame
-        constant BALL_SPEED     : NATURAL := 3;   -- px per frame in x AND y -> 45 degree path
-        constant PADDLE_SPEED   : NATURAL := 4;   -- px per frame while the button is held
+        constant BALL_SPEED     : natural := 3;   -- px per frame in x AND y -> 45 degree path
+        constant PADDLE_SPEED   : natural := 4;   -- px per frame while the button is held
 
     -- Start positions for game_init (top-left corners, so the objects appear centred)
-        constant BALL_X0        : NATURAL := (HPIX - BALL_WIDTH) / 2;    -- 314
-        constant BALL_Y0        : NATURAL := (VPIX - BALL_HIGHT) / 2;    -- 234
-        constant PADDLE_Y0      : NATURAL := (VPIX - PADDLE_HIGHT) / 2;  -- 210
+        constant BALL_X0        : natural := (HPIX - BALL_WIDTH) / 2;    -- 314
+        constant BALL_Y0        : natural := (VPIX - BALL_HIGHT) / 2;    -- 234
+        constant PADDLE_Y0      : natural := (VPIX - PADDLE_HIGHT) / 2;  -- 210
 
 
     -- Screens Configuration of Text positions
@@ -81,16 +82,16 @@ end package;
 
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.numeric_std.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 package bitmap_pkg is 
-    type digit_table is array (9 downto 0) of unsigned(9 downto 0); 
+    type digit_table_t is array (9 downto 0) of unsigned(9 downto 0); 
     -- when writing stepping from position to position 6x in x, 8x in y 
     
     -- 0
-    constant digit_0 : digit_table := (
+    constant digit_0 : digit_table_t := (
         0 => "0011111100",
         1 => "0111111110",
         2 => "1110000111",
@@ -103,7 +104,7 @@ package bitmap_pkg is
         9 => "0011111100"
     );
     -- 1
-    constant digit_1 : digit_table := (
+    constant digit_1 : digit_table_t := (
         0 => "0000110000",
         1 => "0001110000",
         2 => "0011110000",
@@ -116,7 +117,7 @@ package bitmap_pkg is
         9 => "0011111100"
     );
     -- 2
-    constant digit_2 : digit_table := (
+    constant digit_2 : digit_table_t := (
         0 => "0111111110",
         1 => "1111111111",
         2 => "1100000111",
@@ -129,7 +130,7 @@ package bitmap_pkg is
         9 => "1111111111"
     );
     -- 3
-    constant digit_3 : digit_table := (
+    constant digit_3 : digit_table_t := (
         0 => "1111111110",
         1 => "1111111111",
         2 => "0000000111",
@@ -142,7 +143,7 @@ package bitmap_pkg is
         9 => "1111111110"
     );
     -- 4
-    constant digit_4 : digit_table := (
+    constant digit_4 : digit_table_t := (
         0 => "0000011110",
         1 => "0000111110",
         2 => "0001111110",
@@ -155,7 +156,7 @@ package bitmap_pkg is
         9 => "0000001110"
     );
     -- 5
-    constant digit_5 : digit_table := (
+    constant digit_5 : digit_table_t := (
         0 => "1111111111",
         1 => "1111111111",
         2 => "1110000000",
@@ -168,7 +169,7 @@ package bitmap_pkg is
         9 => "1111111110"
     );
     -- 6
-    constant digit_6 : digit_table := (
+    constant digit_6 : digit_table_t := (
         0 => "0011111110",
         1 => "0111111111",
         2 => "1110000000",
@@ -181,7 +182,7 @@ package bitmap_pkg is
         9 => "0011111110"
     );
     -- 7
-    constant digit_7 : digit_table := (
+    constant digit_7 : digit_table_t := (
         0 => "1111111111",
         1 => "1111111111",
         2 => "0000000111",
@@ -194,7 +195,7 @@ package bitmap_pkg is
         9 => "0001110000"
     );
     -- 8
-    constant digit_8 : digit_table := (
+    constant digit_8 : digit_table_t := (
         0 => "0111111110",
         1 => "1111111111",
         2 => "1110000111",
@@ -207,7 +208,7 @@ package bitmap_pkg is
         9 => "0111111110"
     );
     -- 9 
-    constant digit_9 : digit_table := (
+    constant digit_9 : digit_table_t := (
         0 => "0111111110",
         1 => "1111111111",
         2 => "1110000111",
@@ -222,7 +223,7 @@ package bitmap_pkg is
 
     -- all digits in one table, index = digit value: DIGITS(n)(row)(9 - col)
     -- row 0 = top, bit 9 = leftmost column (first character of the strings above)
-    type digit_rom_t is array (0 to 9) of digit_table;
+    type digit_rom_t is array (0 to 9) of digit_table_t;
     constant DIGITS : digit_rom_t := (
         digit_0, digit_1, digit_2, digit_3, digit_4,
         digit_5, digit_6, digit_7, digit_8, digit_9
@@ -230,7 +231,7 @@ package bitmap_pkg is
     
     --Letters
     -- A
-    constant letter_A : digit_table := (
+    constant letter_A : digit_table_t := (
         0 => "0011111100",
         1 => "0111111110",
         2 => "1110000111",
@@ -244,7 +245,7 @@ package bitmap_pkg is
     );
     
     -- B
-    constant letter_B : digit_table := (
+    constant letter_B : digit_table_t := (
         0 => "1111111100",
         1 => "1111111110",
         2 => "1100000111",
@@ -258,7 +259,7 @@ package bitmap_pkg is
     );
     
     -- D
-    constant letter_D : digit_table := (
+    constant letter_D : digit_table_t := (
         0 => "1111111000",
         1 => "1111111110",
         2 => "1100000111",
@@ -272,7 +273,7 @@ package bitmap_pkg is
     );
     
     -- E
-    constant letter_E : digit_table := (
+    constant letter_E : digit_table_t := (
         0 => "1111111111",
         1 => "1111111111",
         2 => "1100000000",
@@ -286,7 +287,7 @@ package bitmap_pkg is
     );
     
     -- G
-    constant letter_G : digit_table := (
+    constant letter_G : digit_table_t := (
         0 => "0011111100",
         1 => "0111111110",
         2 => "1110000111",
@@ -300,7 +301,7 @@ package bitmap_pkg is
     );
     
     -- I
-    constant letter_I : digit_table := (
+    constant letter_I : digit_table_t := (
         0 => "1111111111",
         1 => "1111111111",
         2 => "0000110000",
@@ -314,7 +315,7 @@ package bitmap_pkg is
     );
     
     -- L
-    constant letter_L : digit_table := (
+    constant letter_L : digit_table_t := (
         0 => "1100000000",
         1 => "1100000000",
         2 => "1100000000",
@@ -328,7 +329,7 @@ package bitmap_pkg is
     );
     
     -- N
-    constant letter_N : digit_table := (
+    constant letter_N : digit_table_t := (
         0 => "1110000011",
         1 => "1111000011",
         2 => "1101100011",
@@ -342,7 +343,7 @@ package bitmap_pkg is
     );
     
     -- O (same bitmap as digit_0)
-    constant letter_O : digit_table := (
+    constant letter_O : digit_table_t := (
         0 => "0011111100",
         1 => "0111111110",
         2 => "1110000111",
@@ -356,7 +357,7 @@ package bitmap_pkg is
     );
     
     -- P
-    constant letter_P : digit_table := (
+    constant letter_P : digit_table_t := (
         0 => "1111111100",
         1 => "1111111110",
         2 => "1100000111",
@@ -370,7 +371,7 @@ package bitmap_pkg is
     );
     
     -- R
-    constant letter_R : digit_table := (
+    constant letter_R : digit_table_t := (
         0 => "1111111100",
         1 => "1111111110",
         2 => "1100000111",
@@ -384,7 +385,7 @@ package bitmap_pkg is
     );
     
     -- S
-    constant letter_S : digit_table := (
+    constant letter_S : digit_table_t := (
         0 => "0011111110",
         1 => "0111111111",
         2 => "1110000000",
@@ -398,7 +399,7 @@ package bitmap_pkg is
     );
     
     -- T
-    constant letter_T : digit_table := (
+    constant letter_T : digit_table_t := (
         0 => "1111111111",
         1 => "1111111111",
         2 => "0000110000",
@@ -412,7 +413,7 @@ package bitmap_pkg is
     );
     
     -- U
-    constant letter_U : digit_table := (
+    constant letter_U : digit_table_t := (
         0 => "1100000011",
         1 => "1100000011",
         2 => "1100000011",
@@ -426,7 +427,7 @@ package bitmap_pkg is
     );
     
     -- W
-    constant letter_W : digit_table := (
+    constant letter_W : digit_table_t := (
         0 => "1100000011",
         1 => "1100000011",
         2 => "1100000011",
@@ -440,7 +441,7 @@ package bitmap_pkg is
     );
     
     -- !
-    constant letter_EXCL : digit_table := (
+    constant letter_EXCL : digit_table_t := (
         0 => "0000110000",
         1 => "0000110000",
         2 => "0000110000",
@@ -454,16 +455,16 @@ package bitmap_pkg is
     );
 
     -- empty
-    constant letter_NONE : digit_table := (others => (others => '0'));
+    constant letter_NONE : digit_table_t := (others => (others => '0'));
     
-    type LETTER is (A, B, D, E, G, I, L, N, O, P, R, S, T, U, W, EXCEL, NONE);
+    type char_t is (A, B, D, E, G, I, L, N, O, P, R, S, T, U, W, EXCEL, NONE);
     --Letter Storage ABC Sort Order 
-    type letter_rom_t is array (LETTER) of digit_table;
+    type letter_rom_t is array (char_t) of digit_table_t;
     constant LETTERS : letter_rom_t := (
         letter_A, letter_B, letter_D, letter_E,
         letter_G, letter_I, letter_L, letter_N,
         letter_O, letter_P, letter_R, letter_S,
-        letter_T, letter_U, letter_W, letter_EXCL,   -- one entry per LETTER value, same order
+        letter_T, letter_U, letter_W, letter_EXCL,   -- one entry per char_t value, same order
         letter_NONE
     );
     

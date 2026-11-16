@@ -24,9 +24,7 @@
 --
 --   btn_press is a 1-clock pulse (any button), so one press moves exactly one
 --   state forward. miss is a 1-clock pulse from ball_paddle.
---   
---   FIXME frame_tick is not required i think? Kept for consistency but we can safely remove it I think.
---         everything is controlled by a button or a one tick reset/miss signal. This works because clk_pix > frame_tick
+--   No frame_tick needed: every transition comes from a button, a miss or rst.
 --
 -- Dependencies: design_pkg
 --
@@ -38,9 +36,9 @@
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.numeric_std.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.design_pkg.all;
 
@@ -53,9 +51,6 @@ entity game_fsm is
             --general inputs
             clk_pix     : in std_logic;
             rst         : in std_logic;
-
-            --60Hz blinking interval (unused, see header)
-            frame_tick  : in std_logic;
 
             -- Game specific
             miss        : in miss_t;        -- 1-clock pulse from ball_paddle

@@ -43,9 +43,9 @@
 -- Revision 0.03 - Explanatory comments
 ----------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.design_pkg.all;    -- pos_t (pixel_pos), score_t (scores)
 use work.bitmap_pkg.all;    -- DIGITS (the 10 digit bitmaps)
@@ -86,7 +86,7 @@ architecture Behavioral of digit_check is
     
     signal box_hit      : std_logic := '0';               
     signal sel_digit    : natural range 0 to 9 := 0;   
-    signal sel_letter   : letter := NONE;  
+    signal sel_letter   : char_t := NONE;  
     signal row          : natural range 0 to 9 := 0;      -- bitmap row, 0 = top
     signal col          : natural range 0 to 9 := 0;      -- bitmap column, 0 = left
 begin

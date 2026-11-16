@@ -27,6 +27,11 @@
 --                  put until game_init recentres it)
 --   Paddles are checked before the miss, so touching a paddle is always a hit.
 --
+-- Serve:
+--   After a miss the next ball starts towards the player who missed (the one
+--   who was scored on): miss left -> serve left, miss right -> serve right.
+--   A new game (rst or start) always serves to the right.
+--
 -- Outputs:
 --   ball_pos, paddle_l_pos, paddle_r_pos : top-left corners for the renderer
 --   miss : 'left' / 'right' for exactly one clock when that player missed,
@@ -38,21 +43,22 @@
 -- Revision 0.01 - File Created
 -- Revision 0.02 - Paddle and ball movement, wall/paddle bounces, miss output,
 --                 top-left corner outputs for the renderer
+-- Revision 0.03 - Serve towards the player who was scored on
 -- Additional Comments: Rev 0.03 with accelarating ball/paddles + non 45 deg angles possible
 --
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.design_pkg.all;
 
 entity ball_paddle is
-    Port ( clk_pix    : in  STD_LOGIC;
-           rst        : in  STD_LOGIC;                      -- from clk_gen, active high
-           frame_tick : in  STD_LOGIC;                      -- 1-cycle pulse per frame (enable)
-           btn_level  : in  STD_LOGIC_VECTOR (3 downto 0);  -- debounced, '1' while held
+    Port ( clk_pix    : in  std_logic;
+           rst        : in  std_logic;                      -- from clk_gen, active high
+           frame_tick : in  std_logic;                      -- 1-cycle pulse per frame (enable)
+           btn_level  : in  std_logic_vector (3 downto 0);  -- debounced, '1' while held
            state      : in  state_t;
            miss       : out miss_t;                         -- 1-clock pulse: left / right player missed, else none
 
@@ -67,6 +73,7 @@ architecture Behavioral of ball_paddle is
 signal ball_x, ball_y : unsigned(9 downto 0); -- internal position of the ball
 signal dir_x, dir_y : std_logic; -- directional bit is more efficient than signed vectors for movement. 1 = moving right/down
 signal pad_l, pad_r : unsigned(9 downto 0); -- internal positions of the paddle
+signal serve_dir : std_logic := '1'; -- dir_x for the next serve: towards the player who missed last
 
 -- map buttons directly using alias to not create extra hardware
 alias paddle_l_up   : std_logic is btn_level(0);
@@ -84,13 +91,19 @@ begin
         variable hit_miss : miss_t;
     begin
         if rising_edge(clk_pix) then
-            miss <= none; 
+            miss <= none;
+
+            -- new game (reset or start screen): first serve goes to the right
+            if rst = '1' OR state = start then
+                serve_dir <= '1';
+            end if;
+
             if rst = '1' OR state = game_init then -- center on init/reset
                 ball_x <= to_unsigned(BALL_X0, 10);
                 ball_y <= to_unsigned(BALL_Y0, 10);
                 pad_l <= to_unsigned(PADDLE_Y0, 10);
                 pad_r <= to_unsigned(PADDLE_Y0, 10);
-                dir_x <= '1';
+                dir_x <= serve_dir;             -- towards the player who missed last
                 dir_y <= '1';
                 
             elsif frame_tick = '1' AND state = game_update then
@@ -167,6 +180,13 @@ begin
                     hit_miss := left;    -- left player missed -> right player scores
                 elsif dx = '1' and bx + BALL_WIDTH + BALL_SPEED > HPIX then
                     hit_miss := right;   -- right player missed -> left player scores
+                end if;
+
+                -- remember who missed: the next serve goes towards them
+                if hit_miss = left then
+                    serve_dir <= '0';
+                elsif hit_miss = right then
+                    serve_dir <= '1';
                 end if;
 
                 -- Normal move (not on a miss: the ball stays put until game_init recentres it)

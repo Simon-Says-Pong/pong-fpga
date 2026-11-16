@@ -1,27 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
 -- Create Date: 14.11.2026 16:30:50
--- Design Name: 
 -- Module Name: object_check - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
+-- Description: Checks per pixel whether it belongs to the ball or a paddle (+2 clk).
+--
 -- Revision:
 -- Revision 0.01 - File Created
--- Additional Comments:
--- 
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.design_pkg.all;
 
@@ -29,8 +18,7 @@ use work.design_pkg.all;
 entity object_check is
     Port ( 
         clk_pix     : in std_logic;
-        frame_tick  : in std_logic;
-        
+
         pixel_pos   : in pos_t;
         ball_pos    : in pos_t;
         paddle_pos  : in posY_t;
@@ -55,7 +43,6 @@ calcBorders : process(clk_pix)
 begin 
     if rising_edge(clk_pix) then 
         pixel_pos_d <= pixel_pos;
-        --if frame_tick = '1' then
             --Ball area
             ball_TLC        <= ball_pos;
             ball_BRC.x      <= ball_pos.x + BALL_WIDTH;
@@ -65,7 +52,6 @@ begin
             paddle_TY       <= paddle_pos;
             paddle_BY.yL    <= paddle_pos.yL + PADDLE_HIGHT;
             paddle_BY.yR    <= paddle_pos.yR + PADDLE_HIGHT;
-        --end if;
     end if;
 end process;
 

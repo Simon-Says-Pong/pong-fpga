@@ -5,13 +5,13 @@
 -- Used as an enable (never as a clock), e.g. the shared 12 ms sample tick for
 -- all btn_dbn instances: DIVIDER = 302_000 at 25.173 MHz.
 ----------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity tick_gen is
     generic (DIVIDER : positive := 20);
-    port ( clk_pix : in  STD_LOGIC;
-           tick    : out STD_LOGIC := '0');
+    port ( clk_pix : in  std_logic;
+           tick    : out std_logic := '0');
 end tick_gen;
 
 architecture Behavioral of tick_gen is

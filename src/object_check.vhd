@@ -47,7 +47,7 @@ end object_check;
 architecture Behavioral of object_check is
     signal pixel_pos_d  : pos_t := (others => (others => '0'));
     
-    -- TRC -> Top Right Corner ---- BRC --> Bottom Left Corner
+    -- TLC -> Top Left Corner ---- BRC --> Bottom Right Corner (exclusive: first pixel after the ball)
     signal ball_TLC     : pos_t := (others => (others => '0'));
     signal ball_BRC     : pos_t := (others => (others => '0')); 
     signal paddle_BY    : posY_t := (others => (others => '0')); --BY -> bottom y
@@ -81,21 +81,25 @@ begin
         ball_hit    <= '0';
         paddle_hit  <= '0';
 
+        -- Upper bounds use '<', not '<=': BRC, X2 and BY are start + size, i.e. the first
+        -- pixel AFTER the object. '<=' drew one extra pixel (ball 13x13, paddle 11x61).
+        -- Now the ball is exactly BALL_WIDTH x BALL_HIGHT and a paddle PADDLE_WIDTH x PADDLE_HIGHT.
+
         -- Ball Hit check
-        if pixel_pos_d.x >= ball_TLC.x and pixel_pos_d.x <= ball_BRC.x
-            and pixel_pos_d.y >= ball_TLC.y and pixel_pos_d.y <= ball_BRC.y then
+        if pixel_pos_d.x >= ball_TLC.x and pixel_pos_d.x < ball_BRC.x
+            and pixel_pos_d.y >= ball_TLC.y and pixel_pos_d.y < ball_BRC.y then
            ball_hit <= '1';
         end if;
 
         -- Paddle Left Hit Check
-        if pixel_pos_d.x >= PADDLE_L_X1 and pixel_pos_d.x <= PADDLE_L_X2
-            and pixel_pos_d.y >= paddle_TY.yL and pixel_pos_d.y <= paddle_BY.yL then
+        if pixel_pos_d.x >= PADDLE_L_X1 and pixel_pos_d.x < PADDLE_L_X2
+            and pixel_pos_d.y >= paddle_TY.yL and pixel_pos_d.y < paddle_BY.yL then
            paddle_hit <= '1';
         end if;
 
         -- Paddle Right Hit Check
-        if pixel_pos_d.x >= PADDLE_R_X1 and pixel_pos_d.x <= PADDLE_R_X2
-            and pixel_pos_d.y >= paddle_TY.yR and pixel_pos_d.y <= paddle_BY.yR then
+        if pixel_pos_d.x >= PADDLE_R_X1 and pixel_pos_d.x < PADDLE_R_X2
+            and pixel_pos_d.y >= paddle_TY.yR and pixel_pos_d.y < paddle_BY.yR then
            paddle_hit <= '1';
         end if;
     end if; 

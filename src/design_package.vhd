@@ -209,7 +209,14 @@ package bitmap_pkg is
         8 => "1111111110",
         9 => "0111111100"
     );
-    
+
+    -- all digits in one table, index = digit value: DIGITS(n)(row)(9 - col)
+    -- row 0 = top, bit 9 = leftmost column (first character of the strings above)
+    type digit_rom_t is array (0 to 9) of digit_table;
+    constant DIGITS : digit_rom_t := (
+        digit_0, digit_1, digit_2, digit_3, digit_4,
+        digit_5, digit_6, digit_7, digit_8, digit_9
+    );
 
     -- A
     constant letter_A : digit_table := (

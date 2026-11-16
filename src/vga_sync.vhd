@@ -36,12 +36,15 @@ entity vga_sync is
            hsync            : out std_logic); --horizontale synchronisierung 
 end vga_sync;
 
+------------------------------------
+--Sychnonization of the pixel output for VGA by horizontal end and vertical end.
+------------------------------------
 architecture Behavioral of vga_sync is
 signal pixel_x : unsigned(9 downto 0) := (others => '0');
 signal pixel_y : unsigned(9 downto 0) := (others => '0');
 
 begin
-    --Pixel Counter 
+    --Pixel Counter --> where we write next
     pixUpdate : process(clk_pix)
     begin 
         if rising_edge(clk_pix) then 
@@ -76,18 +79,22 @@ begin
     SyncV : process(clk_pix)
     begin 
         if rising_edge(clk_pix) then 
+            -- defaults
+            hsync <= '1';
+            vsync <= '1';
+            
             if rst = '1' then 
                 video_enable <= '0';
             else
                 video_enable    <= '1' when (pixel_x < HPIX and pixel_y < VPIX)         else '0';
                 frame_tick      <= '1' when (pixel_x = HTOTAL-1 and pixel_y = VTOTAL-1) else '0';
-                hsync <= '1';
-                vsync <= '1';
                 
+                --Check for Horizontal x-Area Sync-Signal
                 if pixel_x >= START_HSYNC-1 and pixel_x <= END_HSYNC-1 then 
                     hsync <= '0';
                 end if;
                 
+                --Check for Vertical y-Area Sync-Signal
                 if pixel_y >= START_VSYNC-1 and pixel_y <= END_VSYNC then 
                     vsync <= '0';
                 end if;

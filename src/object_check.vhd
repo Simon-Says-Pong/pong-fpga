@@ -25,10 +25,6 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.design_pkg.all;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity object_check is
     Port ( 
@@ -78,26 +74,24 @@ end process;
 checkHit : process(clk_pix)
 begin
     if rising_edge(clk_pix) then
+    
+        --Default Values
         ball_hit    <= '0';
         paddle_hit  <= '0';
 
-        -- Upper bounds use '<', not '<=': BRC, X2 and BY are start + size, i.e. the first
-        -- pixel AFTER the object. '<=' drew one extra pixel (ball 13x13, paddle 11x61).
-        -- Now the ball is exactly BALL_WIDTH x BALL_HIGHT and a paddle PADDLE_WIDTH x PADDLE_HIGHT.
-
-        -- Ball Hit check
+        -- Ball hit check - Is there a Ball at this position?
         if pixel_pos_d.x >= ball_TLC.x and pixel_pos_d.x < ball_BRC.x
             and pixel_pos_d.y >= ball_TLC.y and pixel_pos_d.y < ball_BRC.y then
            ball_hit <= '1';
         end if;
 
-        -- Paddle Left Hit Check
+        -- Paddle Left Hit Check - Is there a Paddle at this position?
         if pixel_pos_d.x >= PADDLE_L_X1 and pixel_pos_d.x < PADDLE_L_X2
             and pixel_pos_d.y >= paddle_TY.yL and pixel_pos_d.y < paddle_BY.yL then
            paddle_hit <= '1';
         end if;
 
-        -- Paddle Right Hit Check
+        -- Paddle Right Hit Check- Is there a Paddle at this position?
         if pixel_pos_d.x >= PADDLE_R_X1 and pixel_pos_d.x < PADDLE_R_X2
             and pixel_pos_d.y >= paddle_TY.yR and pixel_pos_d.y < paddle_BY.yR then
            paddle_hit <= '1';

@@ -59,11 +59,12 @@ entity digit_check is
         SHIFT_SMALL : natural := 2;
 
         
-        -- Top-left corner
+        -- Top-left corner Positions for Digits - Score
         DB_Y1       : natural := 10;   
         DLB_X1      : natural := 220;  
         DRB_X1      : natural := 340; 
         
+        -- Start position for Text
         PONG_X1         : natural  := 152;
         FINAL_X1        : natural  := 15;
         PRESSBUTT_X1    : natural  := 74
@@ -81,8 +82,8 @@ end digit_check;
 architecture Behavioral of digit_check is
     -- Seiten lönge einer einzigen Box: 10 cells * 8 px = 80px (2^3*10)
     constant D_SIZE : natural := 10 * 2**SHIFT_BIG;
-
-  
+    
+    
     signal box_hit      : std_logic := '0';               
     signal sel_digit    : natural range 0 to 9 := 0;   
     signal sel_letter   : letter := NONE;  
@@ -123,10 +124,12 @@ begin
                     sel_letter <= N when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
                     sel_letter <= G when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
                     
-                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
-                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
-                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
-                    dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
+                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    for i in 0 to 4 loop 
+                        dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)))) when 
+                        (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) 
+                        and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)) + DIGIT_BIG_PX);
+                    end loop;
                     
                     col <= to_integer(shift_right(dx, SHIFT_BIG));
                     box_hit <= '1';
@@ -139,6 +142,7 @@ begin
                     -- Teilen durch 4 mit shift: 0..39 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_SMALL));
                     
+                    -- Bestimmung der einzelnen Buchstaben nach der festgelegten Position 
                     sel_letter <= P     when (pixel_pos.x >= PRESSBUTT_X1 and pixel_pos.x < PRESSBUTT_X1 + DIGIT_SMALL_PX);
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
                     sel_letter <= E     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
@@ -151,17 +155,12 @@ begin
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
                     sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
                     
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
+                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    for i in 0 to 10 loop 
+                        dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)))) when 
+                                (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i) 
+                                and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)) + DIGIT_SMALL_PX);
+                    end loop;
                     
                     col <= to_integer(shift_right(dx, SHIFT_SMALL));
                     box_hit <= '1';
@@ -179,18 +178,19 @@ begin
                     -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_BIG));
     
-                    -- Linke box?
+                    -- Linke Score box - DLB -> DIGIT LEFT BORDER
                     if pixel_pos.x >= DLB_X1 and pixel_pos.x < DLB_X1 + D_SIZE then
                         -- Offset von der linken seite der box: 0..79 -> column 0..9
                         dx  := pixel_pos.x - DLB_X1;
                         col <= to_integer(shift_right(dx, SHIFT_BIG));
+                        
                         -- DIGITS kann nur 0..9. 
                         if score_l <= 9 then
                             sel_digit     <= to_integer(score_l);   -- Linker score
                             box_hit <= '1';
                         end if;
     
-                    -- Rechte box?
+                    -- Rechte Score box -> DRB __> DIGIT RIGHT BORDER
                     elsif pixel_pos.x >= DRB_X1 and pixel_pos.x < DRB_X1 + D_SIZE then
                         dx  := pixel_pos.x - DRB_X1;
                         col <= to_integer(shift_right(dx, SHIFT_BIG));
@@ -222,15 +222,21 @@ begin
                         sel_letter <= O when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
                         sel_letter <= N when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
                         
-                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX)))   when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
-                   
-                   
+                        -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                        for i in 0 to 3 loop 
+                            dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)))) when 
+                                    (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) 
+                                    and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)) + DIGIT_BIG_PX);
+                        end loop;
+                        
+                        -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens + Lücke
+                        for i in 4 to 6 loop 
+                            dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) + (5 * DIGIT_SPACE_PX))) when 
+                                    (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) + (5 * DIGIT_SPACE_PX) 
+                                    and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
+                        end loop;
+                        
+                        
                     ----------------------------------
                     --TITEL : RED WON               --
                     ----------------------------------
@@ -243,14 +249,11 @@ begin
                         sel_letter <= O     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX);
                         sel_letter <= N     when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX);
                         
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX);
-                        dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6))) when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX);
-                   
+                        for i in 0 to 6 loop 
+                            dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i))) when 
+                            (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) 
+                            and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)) + DIGIT_BIG_PX);
+                        end loop;
                     end if;
                     
                     col <= to_integer(shift_right(dx, SHIFT_BIG)); 
@@ -276,18 +279,12 @@ begin
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
                     sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
                     
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 0)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 4)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 7)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 8)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
-                    dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)))) when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
-                    
+                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    for i in 0 to 10 loop 
+                        dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)))) when 
+                                (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i) 
+                                and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)) + DIGIT_SMALL_PX);
+                    end loop;
                     col <= to_integer(shift_right(dx, SHIFT_SMALL));
                     box_hit <= '1';
                 end if;
@@ -306,11 +303,11 @@ begin
             --       (9 - col)  -> ein pixel pixel, MSB format (cringe)
             -- AND box_hit      -> immer 0 wenn nicht in box
 
-            --dynamix Game
+            -- Score Anzeigen - Digits
             if state = game_init OR state = game_update OR state = game_rst then 
                 digit_hit <= box_hit and DIGITS(sel_digit)(row)(9 - col);
                 
-            --static Screens
+            -- Text Anzeigen - Letters
             elsif state = final OR state = start then 
                 digit_hit <= box_hit and LETTERS(sel_letter)(row)(9 - col);
             end if;

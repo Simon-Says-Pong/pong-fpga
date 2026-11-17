@@ -74,7 +74,6 @@ WELCOME --button--> SERVE --button--> PLAY --miss--> SCORE/PAUSE --(game not ove
 | T-5 | Text (welcome, game over) and score digits are drawn from a **self-made** character/digit ROM. Do not copy font tables from the internet (see R-3). |
 | T-6 | Sizes, speeds, colours and the game-over rule are VHDL `generic`s/constants so they can be changed in one place. |
 | T-7 | The design meets timing (no negative slack) and has a `create_clock` constraint for the board clock. |
-| T-8 | Each module has a testbench; at least the VGA timing and the game FSM are verified in simulation. |
 
 ## 5. Organisation and rules
 

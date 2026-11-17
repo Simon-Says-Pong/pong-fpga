@@ -74,7 +74,3 @@ Alternative: open the committed `vivado/pong.xpr` directly. Then right-click `cl
 | `docs/` | requirements, design notes and diagrams (`docs/graphs/`) |
 | `vivado/` | Vivado project (`pong.xpr`); only the `.xpr` is tracked |
 | `create_project.tcl` | recreates `vivado/` from the repo (see Getting started) |
-
-## Rules
-
-All code in this repository is written by the group. Nothing is copied from the internet (course rule).

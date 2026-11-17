@@ -128,9 +128,9 @@ begin
                             green   <= (others => '0');
                             blue    <= (others => '0');
                         elsif score_r >= 3 then
-                            red     <= (others => '1');
+                            red     <= (others => '0');
                             green   <= (others => '0');
-                            blue    <= (others => '0');
+                            blue    <= (others => '1');
                         end if;
                 end if;
             end if;

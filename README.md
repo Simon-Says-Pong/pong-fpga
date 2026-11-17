@@ -4,8 +4,7 @@ Two-player Pong in VHDL for the Digilent Arty A7-35T, output on a VGA monitor th
 Project for the FPGA & VHDL course at DHBW (2026).
 
 ## Status
-
-Work in progress. Submission is due 17.11.2026; the demo follows on 18.11 or 25.11.2026.
+Submission was due 17.11.2026; the demo follows on 25.11.2026.
 
 ## Requirements
 

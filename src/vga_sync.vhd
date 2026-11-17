@@ -1,12 +1,12 @@
 ----------------------------------------------------------------------------------
 -- Create Date: 11.11.2026 16:11:57
 -- Module Name: vga_sync - Behavioral
--- Description: Erzeugt Pixelzaehler, hsync/vsync, video_enable und frame_tick fuer 640x480 @ 60 Hz.
+-- Description: Generates the pixel counters, hsync/vsync, video_enable and frame_tick for 640x480 @ 60 Hz.
 --
 -- Revision:
 -- Revision 0.01 - File Created
 ----------------------------------------------------------------------------------
---bestimmt und controlled welcher pixel generiert wird 
+-- determines and controls which pixel is generated 
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -21,8 +21,8 @@ entity vga_sync is
            frame_tick       : out std_logic;
            pixel_pos        : out pos_t;
            video_enable     : out std_logic;
-           vsync            : out std_logic;  --verticale synchronisierung
-           hsync            : out std_logic); --horizontale synchronisierung 
+           vsync            : out std_logic;  -- vertical sync
+           hsync            : out std_logic); -- horizontal sync 
 end vga_sync;
 
 ------------------------------------

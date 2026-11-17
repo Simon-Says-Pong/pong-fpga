@@ -1,13 +1,13 @@
 ----------------------------------------------------------------------------------
--- okay proposition für die änderung die ich vorher meinte:
+-- Description: Decides per pixel whether it belongs to a score digit or to the start / end screen text (+2 clk).
 --
--- Daten in bitmap_pkg.DIGITS sind drei genestete arrays, wo jeder index 
--- die auswahl verschmählert:
---      DIGITS                  alle 10 digits             (10 x 10 x 10 bits)
---      DIGITS(n)               Ein einziges digit n (auch picture genannt) (10 rows)
---      DIGITS(n)(row)          eine row, e.g. "0000000111" (unsigned(9 downto 0))
---      DIGITS(n)(row)(bit)     ein pixel, '0' or '1'
---      Beispiel wenn man dann DIGITS(2) verwendet:
+-- The data in bitmap_pkg.DIGITS are three nested arrays, every index
+-- narrows the selection down:
+--      DIGITS                  all 10 digits              (10 x 10 x 10 bits)
+--      DIGITS(n)               one single digit n (also called picture) (10 rows)
+--      DIGITS(n)(row)          one row, e.g. "0000000111" (unsigned(9 downto 0))
+--      DIGITS(n)(row)(bit)     one pixel, '0' or '1'
+--      Example when using DIGITS(2):
 --                     col ->  0 1 2 3 4 5 6 7 8 9
 --                     bit ->  9 8 7 6 5 4 3 2 1 0
 --      row 0  "0111111110"    . # # # # # # # # .
@@ -16,23 +16,23 @@
 --      row 3  "0000000111"    . . . . . . . # # #
 --      ...
 --    
---    Hier halt dann der BS mit MSB und LSB noch, wo die bits mit 9 anfangen anstatt null,
---    weswegen das column (9 - col) ist. Wenn man es direkt liest, dann ist es gespiegelt,
---    so wie es jetzt gerade ist glaube sogar.
+--    Watch the MSB / LSB order: the bits start at 9 instead of 0,
+--    which is why the column is (9 - col). Reading it directly mirrors the digit
+--    (the first version of this module did exactly that).
 --
---    Screenlayout, warum 80x80?
+--    Screen layout, why 80x80?
 --      x:      220      299        340      419
 --      y=10    +--------+          +--------+
---              |  left  |  <-40->  | right  |   jede box 80 x 80 px
+--              |  left  |  <-40->  | right  |   each box 80 x 80 px
 --              | score  |  (mid    | score  |   = 10 x 10 cells of 8 x 8 px
 --      y=89    +--------+  x=320)  +--------+
 --    
---    Vorteil daran ist, dass jedes bit einer bitap dan einfach 2**SHIFT x 2**SHIFT ist.
---    Also in unserem fall für 8x8 dann SHIFT  = 3 (2^3). Wenn wir einen Pixel haben wollen,
---    müssen wir nur den Offset in der box mit 8 teilen (bit shift right SHIFT=3). shift_right(dy, 3)
---    wäre tatsächlich keine neue hardware sondern nur wiring. Im Gegensatz zu nem Divider.
---    Dieses vorgehen ist übrigens auch Standard für fast alle Games gewesen, inklusive dem originalem
---    Pong, da auch dort ein /10 oder /6 extrem teuer ist.
+--    The advantage is that every bit of a bitmap is simply 2**SHIFT x 2**SHIFT pixels.
+--    So in our case, for 8x8, SHIFT = 3 (2^3). To find the bitmap bit of a pixel
+--    we only divide its offset inside the box by 8 (bit shift right, SHIFT = 3). shift_right(dy, 3)
+--    needs no extra hardware, it is only wiring - unlike a divider.
+--    This approach was standard in almost all early games, including the original
+--    Pong, because a /10 or /6 is very expensive in hardware.
 --
 -- Dependencies: design_pkg (pos_t, score_t), bitmap_pkg (DIGITS)
 --
@@ -53,8 +53,8 @@ use work.bitmap_pkg.all;    -- DIGITS (the 10 digit bitmaps)
 entity digit_check is
     generic (
         -- Scale factor = 2**SHIFT. Digit size = 10 bitmap cells * 2**SHIFT pixels.
-        -- SHIFT = 3 -> jede bitmap bit is 8 x 8 pixels -> digit ist damit dann 80 x 80 pixels.
-        -- SHIFT = 2 würde 40 x 40 digits bedeuten.
+        -- SHIFT = 3 -> every bitmap bit is 8 x 8 pixels -> a digit is 80 x 80 pixels.
+        -- SHIFT = 2 would give 40 x 40 digits.
         SHIFT_BIG   : natural := 3;
         SHIFT_SMALL : natural := 2;
 
@@ -80,7 +80,7 @@ entity digit_check is
 end digit_check;
 
 architecture Behavioral of digit_check is
-    -- Seiten lönge einer einzigen Box: 10 cells * 8 px = 80px (2^3*10)
+    -- Side length of one box: 10 cells * 8 px = 80 px (2^3 * 10)
     constant D_SIZE : natural := 10 * 2**SHIFT_BIG;
     
     
@@ -92,14 +92,14 @@ architecture Behavioral of digit_check is
 begin
 
     ------------------------------------------------------------------------------
-    -- Clock 1: In der digit box und wo genau?
+    -- Clock 1: inside a digit box, and where exactly?
     ------------------------------------------------------------------------------
     locate : process(clk_pix)
-        -- Offset des pixels in der box (0..79). 
+        -- Offset of the pixel inside the box (0..79). 
         variable dx, dy : unsigned(9 downto 0);
     begin
         if rising_edge(clk_pix) then
-            --Default
+            -- defaults
             box_hit     <= '0';
             sel_letter  <= NONE;
             row     <= 0;
@@ -108,15 +108,15 @@ begin
             dy      := (others => '0');
 
             
-            --print Start Screen
+            -- start screen
             if state = start then 
             
                 ----------------------------------
-                --Titel : PONG                  --
+                --Title : PONG                  --
                 ----------------------------------
                 if pixel_pos.y >= TITEL_Y AND pixel_pos.y < TITEL_Y + DIGIT_BIG_PX then 
                     dy  := pixel_pos.y - TITEL_Y;
-                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    -- Divide by 8 with a shift: 0..79 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_BIG));
                     
                     sel_letter <= P when (pixel_pos.x >= PONG_X1 and pixel_pos.x < PONG_X1 + DIGIT_BIG_PX);
@@ -124,7 +124,7 @@ begin
                     sel_letter <= N when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_BIG_PX);
                     sel_letter <= G when (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3) and pixel_pos.x < (PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 3)) + DIGIT_BIG_PX);
                     
-                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    -- Find the exact bit of the bitmap from the fixed letter position
                     for i in 0 to 4 loop 
                         dx := (pixel_pos.x - (PONG_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)))) when 
                         (pixel_pos.x >= PONG_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) 
@@ -135,14 +135,14 @@ begin
                     box_hit <= '1';
                     
                 ----------------------------------
-                --Subtitel : PRESS START        --
+                --Subtitle : PRESS START        --
                 ----------------------------------
                 elsif pixel_pos.y >= SUBTITEL_Y AND pixel_pos.y < SUBTITEL_Y + DIGIT_SMALL_PX then
                     dy  := pixel_pos.y - SUBTITEL_Y;
-                    -- Teilen durch 4 mit shift: 0..39 -> bitmap row 0..9
+                    -- Divide by 4 with a shift: 0..39 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_SMALL));
                     
-                    -- Bestimmung der einzelnen Buchstaben nach der festgelegten Position 
+                    -- Select the letter from its fixed position
                     sel_letter <= P     when (pixel_pos.x >= PRESSBUTT_X1 and pixel_pos.x < PRESSBUTT_X1 + DIGIT_SMALL_PX);
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 1)) + DIGIT_SMALL_PX);
                     sel_letter <= E     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 2)) + DIGIT_SMALL_PX);
@@ -155,7 +155,7 @@ begin
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
                     sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
                     
-                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    -- Find the exact bit of the bitmap from the fixed letter position
                     for i in 0 to 10 loop 
                         dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)))) when 
                                 (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i) 
@@ -168,34 +168,34 @@ begin
                 
                 
                 
-            --print game
+            -- game screen
             elsif state = game_init OR state = game_update OR state = game_rst then 
     
-                -- Sind wir auf der richtigen höhe (diesmal ohne <= weil overflow sonst)
+                -- Are we at the right height? ("<" instead of "<=", otherwise row overflows)
                 if pixel_pos.y >= DB_Y1 and pixel_pos.y < DB_Y1 + D_SIZE then
-                    -- Offset von der oberseite der box mit 0..79
+                    -- Offset from the top edge of the box: 0..79
                     dy  := pixel_pos.y - DB_Y1;
-                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    -- Divide by 8 with a shift: 0..79 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_BIG));
     
-                    -- Linke Score box - DLB -> DIGIT LEFT BORDER
+                    -- Left score box - DLB -> DIGIT LEFT BORDER
                     if pixel_pos.x >= DLB_X1 and pixel_pos.x < DLB_X1 + D_SIZE then
-                        -- Offset von der linken seite der box: 0..79 -> column 0..9
+                        -- Offset from the left edge of the box: 0..79 -> column 0..9
                         dx  := pixel_pos.x - DLB_X1;
                         col <= to_integer(shift_right(dx, SHIFT_BIG));
                         
-                        -- DIGITS kann nur 0..9. 
+                        -- DIGITS only has 0..9.
                         if score_l <= 9 then
-                            sel_digit     <= to_integer(score_l);   -- Linker score
+                            sel_digit     <= to_integer(score_l);   -- left score
                             box_hit <= '1';
                         end if;
     
-                    -- Rechte Score box -> DRB __> DIGIT RIGHT BORDER
+                    -- Right score box -> DRB -> DIGIT RIGHT BORDER
                     elsif pixel_pos.x >= DRB_X1 and pixel_pos.x < DRB_X1 + D_SIZE then
                         dx  := pixel_pos.x - DRB_X1;
                         col <= to_integer(shift_right(dx, SHIFT_BIG));
                         if score_r <= 9 then
-                            sel_digit     <= to_integer(score_r);   -- rechter score
+                            sel_digit     <= to_integer(score_r);   -- right score
                             box_hit <= '1';
                         end if;
                     end if;
@@ -203,14 +203,14 @@ begin
                 
                 
                 
-            --print Final screen
+            -- final screen
             elsif state = final then 
                 ----------------------------------
-                --TITEL : BLUE WON              --
+                --TITLE : BLUE WON              --
                 ----------------------------------
                 if pixel_pos.y >= TITEL_Y AND pixel_pos.y < TITEL_Y + DIGIT_BIG_PX then 
                     dy  := pixel_pos.y - TITEL_Y;
-                    -- Teilen durch 8 mit shift: 0..79 -> bitmap row 0..9
+                    -- Divide by 8 with a shift: 0..79 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_BIG));
                     
                     if score_r >= 3 then 
@@ -222,14 +222,14 @@ begin
                         sel_letter <= O when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 5)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
                         sel_letter <= N when (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6) + (5 * DIGIT_SPACE_PX) and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * 6)) + DIGIT_BIG_PX + (5 * DIGIT_SPACE_PX));
                         
-                        -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                        -- Find the exact bit of the bitmap from the fixed letter position
                         for i in 0 to 3 loop 
                             dx := (pixel_pos.x - (FINAL_X1 + (((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)))) when 
                                     (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) 
                                     and pixel_pos.x < (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i)) + DIGIT_BIG_PX);
                         end loop;
                         
-                        -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens + Lücke
+                        -- Find the exact bit of the bitmap from the fixed letter position + gap
                         for i in 4 to 6 loop 
                             dx := (pixel_pos.x - (FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) + (5 * DIGIT_SPACE_PX))) when 
                                     (pixel_pos.x >= FINAL_X1 + ((DIGIT_BIG_PX + DIGIT_SPACE_PX) * i) + (5 * DIGIT_SPACE_PX) 
@@ -238,7 +238,7 @@ begin
                         
                         
                     ----------------------------------
-                    --TITEL : RED WON               --
+                    --TITLE : RED WON               --
                     ----------------------------------
                     elsif score_l >= 3 then
                         sel_letter <= R     when (pixel_pos.x >= FINAL_X1 and pixel_pos.x < FINAL_X1 + DIGIT_BIG_PX);
@@ -260,11 +260,11 @@ begin
                     box_hit <= '1';
                 
                 ----------------------------------
-                --Subtitel : PRESS START        --
+                --Subtitle : PRESS START        --
                 ----------------------------------
                 elsif pixel_pos.y >= SUBTITEL_Y AND pixel_pos.y < SUBTITEL_Y + DIGIT_SMALL_PX then
                     dy  := pixel_pos.y - SUBTITEL_Y;
-                    -- Teilen durch 4 mit shift: 0..39 -> bitmap row 0..9
+                    -- Divide by 4 with a shift: 0..39 -> bitmap row 0..9
                     row <= to_integer(shift_right(dy, SHIFT_SMALL));
                     
                     sel_letter <= P     when (pixel_pos.x >= PRESSBUTT_X1 and pixel_pos.x < PRESSBUTT_X1 + DIGIT_SMALL_PX);
@@ -279,7 +279,7 @@ begin
                     sel_letter <= R     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 9)) + DIGIT_SMALL_PX);
                     sel_letter <= T     when (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10) and pixel_pos.x < (PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * 10)) + DIGIT_SMALL_PX);
                     
-                    -- Bestimmung des genauen Bits der einzelnen Bitmuster nach festgelegter Position des Buchstabens
+                    -- Find the exact bit of the bitmap from the fixed letter position
                     for i in 0 to 10 loop 
                         dx := (pixel_pos.x - (PRESSBUTT_X1 + (((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i)))) when 
                                 (pixel_pos.x >= PRESSBUTT_X1 + ((DIGIT_SMALL_PX + DIGIT_SPACE_PX) * i) 
@@ -293,21 +293,21 @@ begin
     end process;
 
     ------------------------------------------------------------------------------
-    -- Clock 2: Lesen der ROM plus AND mit der flag des pixels
+    -- Clock 2: read the ROM and AND it with the box flag of the pixel
     ------------------------------------------------------------------------------
     lookup : process(clk_pix)
     begin
         if rising_edge(clk_pix) then
-            -- DIGITS(sel_digit)      -> picture vom Digit
-            --       (row)      -> eine row
-            --       (9 - col)  -> ein pixel pixel, MSB format (cringe)
-            -- AND box_hit      -> immer 0 wenn nicht in box
+            -- DIGITS(sel_digit)      -> picture of the digit
+            --       (row)      -> one row
+            --       (9 - col)  -> one pixel, MSB first
+            -- AND box_hit      -> always 0 outside the boxes
 
-            -- Score Anzeigen - Digits
+            -- Show the score - digits
             if state = game_init OR state = game_update OR state = game_rst then 
                 digit_hit <= box_hit and DIGITS(sel_digit)(row)(9 - col);
                 
-            -- Text Anzeigen - Letters
+            -- Show the text - letters
             elsif state = final OR state = start then 
                 digit_hit <= box_hit and LETTERS(sel_letter)(row)(9 - col);
             end if;

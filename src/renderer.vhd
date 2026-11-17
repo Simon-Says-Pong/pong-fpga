@@ -1,12 +1,12 @@
 ----------------------------------------------------------------------------------
 -- Create Date: 11.11.2026 16:41:16
 -- Module Name: renderer - Behavioral
--- Description: Waehlt pro Pixel die Farbe je nach Spielzustand und Treffersignalen (+1 clk).
+-- Description: Chooses the colour of every pixel from the game state and the hit signals (+1 clk).
 --
 -- Revision:
 -- Revision 0.01 - File Created
 ----------------------------------------------------------------------------------
---rendert das bild 
+-- renders the picture 
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -18,7 +18,7 @@ use work.design_pkg.all;
 
 ------------------------------------------------------
 ------------------------------------------------------
--- anpassung notwendig -> war als top level gedacht der ausgaben verarbeitung 
+-- needs adapting -> was planned as the top level of the output processing 
 ------------------------------------------------------
 ------------------------------------------------------
 entity renderer is
@@ -122,7 +122,7 @@ begin
             --Final Screen 
             elsif state_game = final then 
                 if digit_hit = '1' then
-                    --if pixel_pos.y  --> höhenabhängiger colorchange
+                    --if pixel_pos.y  --> height-dependent colour change
                         if score_l >= 3 then 
                             red     <= (others => '1');
                             green   <= (others => '0');
